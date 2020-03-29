@@ -1,0 +1,17 @@
+p5js actions:
+
+- click draw new tile, then click where it goes
+- click player tile, then click where it goes (HOME, PORTAL, or NEXT INTERSECTION)
+	- if moving to next intersection, this adds resources to player's total
+- click portal token (to place on current player location)
+- click goal card to collect it, then click on resources (including already-owned goal cards) necessary to buy it
+
+STAGES
+
+1. draw random road tiles on grid when you click a location
+	- goal: build grid in p5js, load sprites from single image, click on tile location to show a random tile
+	- example-ish: tiles.js in ~/Sites/tile-placer/tiles.js
+
+2. add resource placement to random tile
+
+3. draw random tile (display it), then choose where it goes
