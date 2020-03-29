@@ -14,4 +14,15 @@ STAGES
 
 2. add resource placement to random tile
 
-3. draw random tile (display it), then choose where it goes
+3. click to rotate tile
+	- clicking empty tile -> choose random tile of three base ones
+	- clicking non-empty tile -> rotate tile
+
+4. draw random tile (display it), then choose where it goes
+	- new canvas for actions, including "draw tile"
+	- when you click "draw tile", a random tile shows up there
+	- when you click the random tile, you enter "tile place" mode
+	- when in "tile place mode," clicking a tile on main board:
+		- if tile is empty, place that tile there
+		- if tile is already there, rotate the tile
+
