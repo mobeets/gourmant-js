@@ -24,7 +24,7 @@ var canvasWidth = grid_cols*col_width;
 var canvasHeight = grid_rows*row_height + 100;
 
 let button_draw_tile;
-let drawn_tile;
+let drawnTile;
 
 function windowResized() {
   resizeCanvas(canvasWidth, canvasHeight);
@@ -45,9 +45,18 @@ class Tile {
     this.isOnBoard = isOnBoard;
     if (isOnBoard) {
       this.hidden = false;
+      this.isDrawnTile = false;
     } else {
-      this.hidden = true;
+      this.initDrawnTile();
     }
+  }
+
+  initDrawnTile() {
+    this.isDrawnTile = true;
+    this.hidden = true;
+    this.isBeingDragged = false;
+    this.x = 1 * col_width;
+    this.y = (grid_rows+1) * row_height;
   }
 
   rotate() {
@@ -77,8 +86,10 @@ class Tile {
       y = this.row * row_height;
     } else if (!this.hidden) {
       // display in control panel
-      x = 1 * col_width;
-      y = (grid_rows+1) * row_height;
+      x = this.x;
+      y = this.y;
+      fill('#5b8226');
+      rect(x-col_width/20, y-row_height/20, col_width+2*col_width/20, row_height+2*row_height/20);
     }
 
     // the tiles are packed into a single 4 x 4 atlas
@@ -105,10 +116,24 @@ class Tile {
   }
 
   click() {
-    if (this.tile_id === -1) { // empty, so fill it randomly      
-      this.randomize();
-    } else { // not empty, so rotate
-      this.rotate();
+    if (this.tile_id === -1) { // empty, so fill it with drawn tile
+      if (drawnTile.isBeingDragged) {
+        // copy drawn tile, then hide drawn tile
+        this.tile_id = drawnTile.tile_id;
+        this.resource_id = drawnTile.resource_id;
+        this.resource_corner = drawnTile.resource_corner;
+        drawnTile.initDrawnTile();
+      }
+      // this.randomize();
+    } else if (this.isOnBoard) { // not empty, so rotate
+      if (!drawnTile.isBeingDragged) {
+        // can only rotate when not dragging drawn tile
+        this.rotate();
+      }
+    } else if (this.isDrawnTile) {
+      if (!this.hidden && !this.isBeingDragged) {
+        this.isBeingDragged = true;
+      }
     }
   }
 
@@ -138,13 +163,13 @@ function initializeTiles() {
   tiles[3][3].tile_id = tileCount-1;
 
   // set DRAWN tile
-  drawn_tile = new Tile(0, 0, false);
+  drawnTile = new Tile(0, 0, false);
 }
 
 function drawRandomTile() {
   // draw a random tile and display it in the control panel
-  drawn_tile.randomize();
-  drawn_tile.hidden = false;
+  drawnTile.randomize();
+  drawnTile.hidden = false;
 }
 
 function setup() {
@@ -161,8 +186,8 @@ function draw() {
   fill(255);
   rect(0, grid_rows*row_height, grid_cols*col_width, 100);
 
-  renderTiles();
   drawGridLines();
+  renderTiles();
 }
 
 function mouseClicked() {
@@ -171,8 +196,13 @@ function mouseClicked() {
   let row = floor(mouseY / row_height);
   if (col > 0 && row > 0 && col < tiles.length && row < tiles[col].length) {
     tiles[col][row].click();
+    return;
   }
 
+  // check if drawn tile was clicked
+  if (mouseX >= drawnTile.x && mouseX < drawnTile.x+col_width && mouseY >= drawnTile.y && mouseY < drawnTile.y+row_height) {
+    drawnTile.click();
+  }
 }
 
 function renderTiles() {
@@ -182,7 +212,12 @@ function renderTiles() {
         tiles[col][row].render();
     }
   }
-  drawn_tile.render();
+  // if drawn tile is being dragged, draw it (centered) under cursor
+  if (drawnTile.isBeingDragged) {
+    drawnTile.x = mouseX - col_width/2;
+    drawnTile.y = mouseY - row_height/2;
+  }
+  drawnTile.render();
 }
 
 function drawGridLines() {
