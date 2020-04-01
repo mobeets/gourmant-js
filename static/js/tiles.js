@@ -194,7 +194,7 @@ function mouseClicked() {
   // check if a tile was clicked
   let col = floor(mouseX / col_width);
   let row = floor(mouseY / row_height);
-  if (col > 0 && row > 0 && col < tiles.length && row < tiles[col].length) {
+  if (col >= 0 && row >= 0 && col < tiles.length && row < tiles[col].length) {
     tiles[col][row].click();
     return;
   }
