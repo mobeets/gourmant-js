@@ -5,14 +5,18 @@ let grid_cols = 12;
 let grid_rows = 8;
 let row_height = 32;
 let col_width = 32;
-let sprite_size = 32;
-let sprites_per_dim = 4; // assumes same in rows and cols
-let tileCount = 11;
 let resourceDiameter; // size of resource icon
 let road_ids;
 let road_resources;
 let road_resource_corners;
 let road_set;
+
+// sprite tile info
+let sprite_size = 32;
+let sprites_per_dim = 4; // assumes same in rows and cols
+let tileCount = 11; // total number of tiles
+let baseTileIndices = [0, 4, 8];
+let baseTileCounts = [4, 4, 2]; // number of each type
 
 let resourceCount = 4;
 let resourceColors = ['#f0340e', '#fcba03', '#272adb', '#a8329d', '#18b52f'];
@@ -59,15 +63,36 @@ function draw() {
     background('#8cc63e');
     drawMap();
     drawGridLines();
-    noLoop(); // we wait for mouse click to update
+    // noLoop(); // we wait for mouse click to update
+}
+
+function rotateTile(grid_x, grid_y) {
+    // let baseTileIndices = [0, 4, 8];
+    // let baseTileCounts = [4, 4, 2]; // number of each type
+
+    let roadIndex = road_ids[grid_x][grid_y];
+    for (let i = 0; i < baseTileIndices.length; i++) {
+        if (i === baseTileIndices.length-1 || roadIndex < baseTileIndices[i+1]) {
+            // rotate the road tile
+            let j = roadIndex-baseTileIndices[i];
+            road_ids[grid_x][grid_y] = baseTileIndices[i] + ((j+1) % baseTileCounts[i]);
+            // rotate the corner the resource is in
+            road_resource_corners[grid_x][grid_y] = (road_resource_corners[grid_x][grid_y]+1) % 4;
+            return;
+        }
+    }
 }
 
 function mouseClicked() {
     // find the grid location of the click
     let grid_x = floor(mouseX / col_width);
     let grid_y = floor(mouseY / col_width);
-    chooseRandomTile(grid_x, grid_y);
-    redraw(); // calls draw()
+    if (road_ids[grid_x][grid_y] === -1) { // empty
+        chooseRandomTile(grid_x, grid_y);
+    } else { // not empty        
+        rotateTile(grid_x, grid_y);
+    }
+    // redraw(); // calls draw()
 }
 
 function chooseRandomTile(grid_x, grid_y) {
@@ -91,7 +116,7 @@ function drawMap() {
             if (roadIndex > -1) {
                 // draw the road
                 let roadResource = road_resources[col][row];
-                let resourceCorner = road_resources[col][row];
+                let resourceCorner = road_resource_corners[col][row];
                 drawRoadTile(roadIndex, col, row, roadResource, resourceCorner);
             }
         }
@@ -131,9 +156,9 @@ function drawRoadTile(value, col, row, res, corner) {
         } else if (corner === 1) {
             circle(x+col_width-resourceDiameter, y+resourceDiameter, resourceDiameter);
         } else if (corner === 2) {
-            circle(x+resourceDiameter, y+row_height-resourceDiameter, resourceDiameter);
-        } else {
             circle(x+col_width-resourceDiameter, y+row_height-resourceDiameter, resourceDiameter);
+        } else {
+            circle(x+resourceDiameter, y+row_height-resourceDiameter, resourceDiameter);
         }
     }
 }

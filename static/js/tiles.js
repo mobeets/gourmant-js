@@ -6,10 +6,8 @@ let grid_rows = 8;
 let row_height = 32;
 let col_width = 32;
 let resourceDiameter; // size of resource icon
-let road_ids;
-let road_resources;
-let road_resource_corners;
-let road_set;
+let road_sprites;
+let tiles;
 
 // sprite tile info
 let sprite_size = 32;
@@ -30,135 +28,137 @@ function windowResized() {
 }
 
 function preload() {
-    road_set = loadImage("/static/images/tiles.png");
+    road_sprites = loadImage("/static/images/tiles.png");
 }
 
-function setup() {
-    canvas = createCanvas(canvasWidth, canvasHeight);
-    canvas.parent('sketch-holder');
+class Tile {
 
-    resourceDiameter = ceil(col_width/6);
+  constructor(col, row){
+    this.tile_id = -1;
+    this.resource_id = -1;
+    this.resource_corner = -1;
+    this.col = col;
+    this.row = row;
+  }
 
-    // generate a 2D array to hold the state of each grid cell
-    road_ids = create2DArray(grid_cols, grid_rows, -1);
-    road_resources = create2DArray(grid_cols, grid_rows, -1);
-    road_resource_corners = create2DArray(grid_cols, grid_rows, -1);
-
-    road_ids[3][3] = tileCount-1; // init HOME
-}
-
-function create2DArray(cols, rows, value) {
-// init an array cols x rows large to store cell state
-    let a = [];
-    for (let col = 0; col < cols; col++) {
-        a[col] = [];
-        for (let row = 0; row < rows; row++) {
-            a[col][row] = value;
-        }
-    }
-    return a;
-}
-
-function draw() {
-    background('#8cc63e');
-    drawMap();
-    drawGridLines();
-    noLoop(); // we wait for mouse click to update
-}
-
-function rotateTile(grid_x, grid_y) {
-    // let baseTileIndices = [0, 4, 8];
-    // let baseTileCounts = [4, 4, 2]; // number of each type
-
-    let roadIndex = road_ids[grid_x][grid_y];
+  rotate() {
     for (let i = 0; i < baseTileIndices.length; i++) {
-        if (i === baseTileIndices.length-1 || roadIndex < baseTileIndices[i+1]) {
+        if (i === baseTileIndices.length-1 || this.tile_id < baseTileIndices[i+1]) {
             // rotate the road tile
-            let j = roadIndex-baseTileIndices[i];
-            road_ids[grid_x][grid_y] = baseTileIndices[i] + ((j+1) % baseTileCounts[i]);
+            let j = this.tile_id-baseTileIndices[i];
+            this.tile_id = baseTileIndices[i] + ((j+1) % baseTileCounts[i]);
             // rotate the corner the resource is in
-            road_resource_corners[grid_x][grid_y] = (road_resource_corners[grid_x][grid_y]+1) % 4;
+            this.resource_corner = (this.resource_corner+1) % 4;
             return;
         }
     }
-}
+  }
 
-function mouseClicked() {
-    // find the grid location of the click
-    let grid_x = floor(mouseX / col_width);
-    let grid_y = floor(mouseY / col_width);
-    if (road_ids[grid_x][grid_y] === -1) { // empty
-        chooseRandomTile(grid_x, grid_y);
-    } else { // not empty        
-        rotateTile(grid_x, grid_y);
+  // draws a single tile from the atlas at the given grid col + row
+  render() {
+    // tile is empty
+    if (this.tile_id === -1) {
+      return;
     }
-    redraw(); // calls draw()
-}
 
-function chooseRandomTile(grid_x, grid_y) {
-    // choose random tile (but not HOME) and resource
-    let roadIndex = round(random(-0.49, tileCount-2+0.49));
-    let roadResource = round(random(-0.49, resourceCount-1+0.49));
-    let resourceCorner = random([0,1,2,3]);
-    // let roadResource = random([0,1,2,3]);    
-    road_ids[grid_x][grid_y] = roadIndex;
-    road_resources[grid_x][grid_y] = roadResource;
-    road_resource_corners[grid_x][grid_y] = resourceCorner;
-}
-
-function drawMap() {
-    // loop over each cell
-    for (let col = 0; col < grid_cols; col++) {
-        for (let row = 0; row < grid_rows; row++) {
-
-            // check the state of the cell
-            let roadIndex = road_ids[col][row];
-            if (roadIndex > -1) {
-                // draw the road
-                let roadResource = road_resources[col][row];
-                let resourceCorner = road_resource_corners[col][row];
-                drawRoadTile(roadIndex, col, row, roadResource, resourceCorner);
-            }
-        }
-    }
-}
-
-// draw grid lines
-function drawGridLines() {
-    stroke(100, 100, 100, 50);
-    for (let x = 0; x < width; x += col_width) {
-        line(x, 0, x, height);
-    }
-    for (let y = 0; y < height; y += row_height) {
-        line(0, y, width, y);
-    }
-}
-
-// draws a single tile from the atlas at the given grid col + row
-function drawRoadTile(value, col, row, res, corner) {
     // find location to draw
-    let x = col * col_width;
-    let y = row * row_height;
+    let x = this.col * col_width;
+    let y = this.row * row_height;
 
     // the tiles are packed into a single 4 x 4 atlas
     // we need calculate what part of the image to draw
-    let sx = value % sprites_per_dim * sprite_size;
-    let sy = floor(value / sprites_per_dim) * sprite_size;
+    let sx = this.tile_id % sprites_per_dim * sprite_size;
+    let sy = floor(this.tile_id / sprites_per_dim) * sprite_size;
 
     // draw it
-    image(road_set, x, y, col_width, row_height, sx, sy, sprite_size, sprite_size);
-    if (res > -1) {
+    image(road_sprites, x, y, col_width, row_height, sx, sy, sprite_size, sprite_size);
+    if (this.resource_id > -1) {
         // textAlign(LEFT, TOP);
         // text(res,x,y);
-        fill(resourceColors[res]);
-        if (corner === 0) {
+        fill(resourceColors[this.resource_id]);
+        if (this.resource_corner === 0) {
             circle(x+resourceDiameter, y+resourceDiameter, resourceDiameter);
-        } else if (corner === 1) {
+        } else if (this.resource_corner === 1) {
             circle(x+col_width-resourceDiameter, y+resourceDiameter, resourceDiameter);
-        } else if (corner === 2) {
+        } else if (this.resource_corner === 2) {
             circle(x+col_width-resourceDiameter, y+row_height-resourceDiameter, resourceDiameter);
         } else {
             circle(x+resourceDiameter, y+row_height-resourceDiameter, resourceDiameter);
         }
     }
+  }
+
+  click() {
+    if (this.tile_id === -1) { // empty, so fill it randomly      
+      this.randomize();
+    } else { // not empty, so rotate
+      this.rotate();
+    }
+  }
+
+  randomize() {
+    // choose random tile (but not HOME) and resource
+    let roadIndex = round(random(-0.49, tileCount-2+0.49));
+    let roadResource = round(random(-0.49, resourceCount-1+0.49));
+    let resourceCorner = random([0,1,2,3]);
+    // let roadResource = random([0,1,2,3]);
+    this.tile_id = roadIndex;
+    this.resource_id = roadResource;
+    this.resource_corner = resourceCorner;
+    console.log(this);
+  }
+}
+
+function initializeTiles() {
+  // initialize all tiles
+  tiles = [];
+  for (let col = 0; col < grid_cols; col++){
+    tiles[col] = [];
+    for (let row = 0; row < grid_rows; row++){
+      tiles[col][row] = new Tile(col, row);
+    }
+  }
+
+  // set HOME tile
+  tiles[3][3].tile_id = tileCount-1;
+}
+
+function setup() {
+  canvas = createCanvas(canvasWidth, canvasHeight);
+  canvas.parent('sketch-holder');
+  resourceDiameter = ceil(col_width/6);
+  initializeTiles();
+}
+
+function draw() {
+  background('#8cc63e');
+  renderTiles();
+  drawGridLines();
+}
+
+function mouseClicked() {
+  // find the grid location of the click
+  let col = floor(mouseX / col_width);
+  let row = floor(mouseY / col_width);
+  tiles[col][row].click();
+}
+
+function renderTiles() {
+  // loop over each cell
+  for (let col = 0; col < grid_cols; col++) {
+      for (let row = 0; row < grid_rows; row++) {
+          tiles[col][row].render();
+      }
+  }
+}
+
+function drawGridLines() {
+  // draw grid lines
+  stroke(100, 100, 100, 50);
+  for (let x = 0; x < width; x += col_width) {
+      line(x, 0, x, height);
+  }
+  for (let y = 0; y < height; y += row_height) {
+      line(0, y, width, y);
+  }
 }
