@@ -43,18 +43,23 @@ class Tile {
     this.col = col;
     this.row = row;
     this.isOnBoard = isOnBoard;
+    this.isLastPlaced = false;
     if (isOnBoard) {
       this.hidden = false;
       this.isDrawnTile = false;
     } else {
-      this.initDrawnTile();
+      this.resetDrawnTile();
     }
   }
 
-  initDrawnTile() {
+  resetDrawnTile() {
     this.isDrawnTile = true;
     this.hidden = true;
     this.isBeingDragged = false;
+    this.resetDrawnTileLocation();
+  }
+  
+  resetDrawnTileLocation() {
     this.x = 1 * col_width;
     this.y = (grid_rows+1) * row_height;
   }
@@ -85,9 +90,12 @@ class Tile {
       x = this.col * col_width;
       y = this.row * row_height;
     } else if (!this.hidden) {
-      // display in control panel
+      // the drawn tile
       x = this.x;
       y = this.y;
+    }
+    // highlight tile if it was last placed or being dragged
+    if (this.isLastPlaced || this.isBeingDragged) {
       fill('#5b8226');
       rect(x-col_width/20, y-row_height/20, col_width+2*col_width/20, row_height+2*row_height/20);
     }
@@ -122,17 +130,24 @@ class Tile {
         this.tile_id = drawnTile.tile_id;
         this.resource_id = drawnTile.resource_id;
         this.resource_corner = drawnTile.resource_corner;
-        drawnTile.initDrawnTile();
+
+        // mark tile so we know we can still rotate it
+        this.isLastPlaced = true;
+
+        // reset drawn tile to be invisible
+        drawnTile.resetDrawnTile();
       }
-      // this.randomize();
     } else if (this.isOnBoard) { // not empty, so rotate
-      if (!drawnTile.isBeingDragged) {
+      if (!drawnTile.isBeingDragged && this.isLastPlaced) {
         // can only rotate when not dragging drawn tile
         this.rotate();
       }
     } else if (this.isDrawnTile) {
       if (!this.hidden && !this.isBeingDragged) {
         this.isBeingDragged = true;
+      } else { // clicked in white area, so reset
+        this.isBeingDragged = false;
+        this.resetDrawnTileLocation();
       }
     }
   }
@@ -168,8 +183,38 @@ function initializeTiles() {
 
 function drawRandomTile() {
   // draw a random tile and display it in the control panel
-  drawnTile.randomize();
-  drawnTile.hidden = false;
+  if (drawnTile.hidden) {
+    drawnTile.randomize();
+    drawnTile.hidden = false;
+  }
+  for (let col = 0; col < grid_cols; col++) {
+    for (let row = 0; row < grid_rows; row++) {
+        tiles[col][row].isLastPlaced = false;
+    }
+  }
+}
+
+function resetDrawnTile() {
+  // find the last drawn tile and put it back
+  if (!drawnTile.hidden) {
+    // cannot do this if a new tile has been drawn
+    return;
+  }
+  for (let col = 0; col < grid_cols; col++) {
+    for (let row = 0; row < grid_rows; row++) {
+        if (tiles[col][row].isLastPlaced) {
+          drawnTile.tile_id = tiles[col][row].tile_id;
+          drawnTile.resource_id = tiles[col][row].resource_id;
+          drawnTile.resource_corner = tiles[col][row].resource_corner;
+          drawnTile.hidden = false;
+          tiles[col][row].tile_id = -1;
+          tiles[col][row].resource_id = -1;
+          tiles[col][row].resource_corner = -1;
+          tiles[col][row].isLastPlaced = false;
+          return;
+        }
+    }
+  }
 }
 
 function setup() {
@@ -186,8 +231,8 @@ function draw() {
   fill(255);
   rect(0, grid_rows*row_height, grid_cols*col_width, 100);
 
-  drawGridLines();
   renderTiles();
+  drawGridLines();
 }
 
 function mouseClicked() {
@@ -234,6 +279,7 @@ function drawGridLines() {
 
 function addHandlers() {
   $("#draw-tile").click(drawRandomTile);
+  $("#reset-tile").click(resetDrawnTile);
 }
 
 $(document).ready(function() {

@@ -1,4 +1,10 @@
-p5js actions:
+---------------------
+MINOR TODOS
+---------------------
+
+---------------------
+DESIRED INTERACTIONS
+---------------------
 
 - click draw new tile, then click where it goes
 - click player tile, then click where it goes (HOME, PORTAL, or NEXT INTERSECTION)
@@ -6,7 +12,9 @@ p5js actions:
 - click portal token (to place on current player location)
 - click goal card to collect it, then click on resources (including already-owned goal cards) necessary to buy it
 
-STAGES
+---------------------
+STAGES: FINISHED
+---------------------
 
 1. draw random road tiles on grid when you click a location
 	- goal: build grid in p5js, load sprites from single image, click on tile location to show a random tile
@@ -26,3 +34,10 @@ STAGES
 		- if tile is empty, place that tile there
 		- if tile is already there, rotate the tile
 
+---------------------
+STAGES: NEXT
+---------------------
+
+5. design player tokens that will be visible but not cluttery
+
+6. allow moving player tokens by clicking on it, then clicking its new location
