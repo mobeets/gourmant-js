@@ -36,8 +36,9 @@ STAGES: FINISHED
 
 5. design player tokens that will be visible but not cluttery
 
+6. allow moving player tokens by clicking on it, then clicking its new location
+
 ---------------------
 STAGES: NEXT
 ---------------------
 
-6. allow moving player tokens by clicking on it, then clicking its new location

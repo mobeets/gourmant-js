@@ -141,11 +141,6 @@ class Tile {
       x = this.x;
       y = this.y;
     }
-    // highlight tile if it was last placed or being dragged
-    if (this.isLastPlaced || this.isBeingDragged) {
-      fill('#5b8226');
-      rect(x-col_width/20, y-row_height/20, col_width+2*col_width/20, row_height+2*row_height/20);
-    }
 
     // the tiles are packed into a single 4 x 4 atlas
     // we need calculate what part of the image to draw
@@ -167,6 +162,15 @@ class Tile {
       } else {
         circle(x+resourceDiameter, y+row_height-resourceDiameter, resourceDiameter);
       }
+    }
+
+    // highlight tile if it was last placed or being dragged
+    if (this.isLastPlaced || this.isBeingDragged) {
+      noFill();
+      stroke('#5b8226');
+      strokeWeight(2);
+      rect(x, y, col_width, row_height);
+      strokeWeight(1);
     }
   }
 
