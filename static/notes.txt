@@ -34,10 +34,10 @@ STAGES: FINISHED
 		- if tile is empty, place that tile there
 		- if tile is already there, rotate the tile
 
+5. design player tokens that will be visible but not cluttery
+
 ---------------------
 STAGES: NEXT
 ---------------------
-
-5. design player tokens that will be visible but not cluttery
 
 6. allow moving player tokens by clicking on it, then clicking its new location

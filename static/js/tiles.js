@@ -8,6 +8,10 @@ let col_width = 32;
 let resourceDiameter; // size of resource icon
 let road_sprites;
 let tiles;
+let playerTokens;
+let nPlayers = 1;
+let HOME_TILE_COL = 3;
+let HOME_TILE_ROW = 3;
 
 // sprite tile info
 let sprite_size = 32;
@@ -34,6 +38,48 @@ function preload() {
     road_sprites = loadImage("/static/images/tiles.png");
 }
 
+class Token {
+  constructor(id, col, row, color){
+    this.id = id;
+    this.col = col;
+    this.row = row;
+    this.color = color;
+    // this.selected = false;
+    this.isBeingDragged = false;
+  }
+
+  render() {
+    let x, y;
+    if (this.isBeingDragged) {
+      x = this.x;
+      y = this.y;
+    } else {
+      x = this.col * col_width;
+      y = this.row * row_height;
+    }
+    fill(this.color);
+    rect(x-col_width/20, y-row_height/20, col_width+2*col_width/20, row_height+2*row_height/20);
+  }
+
+  click(col, row) {
+    if (this.isBeingDragged) {
+      if (col > 0 && row > 0) {
+        // can only place on non-empty tile
+        if (tiles[col][row].tile_id > -1) {
+          tiles[this.col][this.row].playerTokenId = -1;
+          this.col = col;
+          this.row = row;
+          tiles[col][row].playerTokenId = this.id;
+          tiles[col][row].isLastPlaced = false;
+        }
+      }
+      this.isBeingDragged = false;
+    } else {
+      this.isBeingDragged = true;
+    }
+  }
+}
+
 class Tile {
 
   constructor(col, row, isOnBoard){
@@ -44,6 +90,7 @@ class Tile {
     this.row = row;
     this.isOnBoard = isOnBoard;
     this.isLastPlaced = false;
+    this.playerTokenId = -1;
     if (isOnBoard) {
       this.hidden = false;
       this.isDrawnTile = false;
@@ -164,6 +211,17 @@ class Tile {
   }
 }
 
+function initializeTokens() {
+  playerTokens = [];
+  for (let i = 0; i < nPlayers; i++){
+    let clr = color(random(0,255),random(0,255),random(0,255),100);
+    playerTokens[i] = new Token(i, HOME_TILE_COL, HOME_TILE_ROW, clr);
+    tiles[HOME_TILE_COL][HOME_TILE_ROW].playerTokenId = i;
+    // warning: this only allows one token per tile
+    // need to allow home token to have multiple
+  }
+}
+
 function initializeTiles() {
   // initialize all tiles
   tiles = [];
@@ -175,7 +233,7 @@ function initializeTiles() {
   }
 
   // set HOME tile
-  tiles[3][3].tile_id = tileCount-1;
+  tiles[HOME_TILE_COL][HOME_TILE_ROW].tile_id = tileCount-1;
 
   // set DRAWN tile
   drawnTile = new Tile(0, 0, false);
@@ -222,6 +280,7 @@ function setup() {
   canvas.parent('sketch-holder');
   resourceDiameter = ceil(col_width/6);
   initializeTiles();
+  initializeTokens();
 }
 
 function draw() {
@@ -232,21 +291,43 @@ function draw() {
   rect(0, grid_rows*row_height, grid_cols*col_width, 100);
 
   renderTiles();
+  renderTokens();
   drawGridLines();
 }
 
 function mouseClicked() {
-  // check if a tile was clicked
+  // find location of mouse click, relative to tiles
   let col = floor(mouseX / col_width);
   let row = floor(mouseY / row_height);
+
+  // check if player token is currently being moved
+  for (let i = 0; i < playerTokens.length; i++) {
+    if (playerTokens[i].isBeingDragged) {
+      if (col >= 0 && row >= 0 && col < tiles.length && row < tiles[col].length) {
+        playerTokens[i].click(col, row);
+      } else {
+        playerTokens[i].click();
+      }
+      return;
+    }
+  }
+  
+  // check if a tile was clicked
   if (col >= 0 && row >= 0 && col < tiles.length && row < tiles[col].length) {
-    tiles[col][row].click();
+    if (drawnTile.isBeingDragged) {
+      tiles[col][row].click();
+    } else if (tiles[col][row].playerTokenId > -1) {
+      playerTokens[tiles[col][row].playerTokenId].click();
+    } else {
+      tiles[col][row].click();
+    }
     return;
   }
 
   // check if drawn tile was clicked
   if (mouseX >= drawnTile.x && mouseX < drawnTile.x+col_width && mouseY >= drawnTile.y && mouseY < drawnTile.y+row_height) {
     drawnTile.click();
+    return;
   }
 }
 
@@ -263,6 +344,16 @@ function renderTiles() {
     drawnTile.y = mouseY - row_height/2;
   }
   drawnTile.render();
+}
+
+function renderTokens() {
+  for (let i = 0; i < playerTokens.length; i++) {
+    if (playerTokens[i].isBeingDragged) {
+      playerTokens[i].x = mouseX - col_width/2;
+      playerTokens[i].y = mouseY - row_height/2;
+    }
+    playerTokens[i].render();
+  }
 }
 
 function drawGridLines() {
