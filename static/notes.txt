@@ -42,3 +42,20 @@ STAGES: FINISHED
 STAGES: NEXT
 ---------------------
 
+7. Add (compact) counters for four resources, with +/-, and color; also one for VPs
+	- [x] layout
+	- [ ] render (set colors programmatically)
+	- [ ] functionality
+
+8. create GoalCard() object and design
+	- [x] render
+	- [ ] generate full deck
+
+9. randomly display N GoalCards in control panel
+
+10. allow buying goal cards
+	- action: select/highlight goal card by clicking, then click "Buy" button
+	- then: goal card disappears and is replaced, resource counters deplete by the appropriate amount, and VP count increases
+
+11. generate an actual deck of tiles (rather than infinites of each type)
+	- pre-create all possible Tile()s, and then have their location set to be invisible or whatever

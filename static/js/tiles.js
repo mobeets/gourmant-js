@@ -6,9 +6,11 @@ let grid_rows = 8;
 let row_height = 32;
 let col_width = 32;
 let resourceDiameter; // size of resource icon
+let goalResourceDiameter; // size on goal card
 let road_sprites;
 let tiles;
 let playerTokens;
+let goalCards;
 let nPlayers = 1;
 let HOME_TILE_COL = 3;
 let HOME_TILE_ROW = 3;
@@ -23,9 +25,10 @@ let baseTileCounts = [4, 4, 2]; // number of each type
 let resourceCount = 4;
 let resourceColors = ['#f0340e', '#fcba03', '#272adb', '#a8329d', '#18b52f'];
 
+let controlPanelHeight = 2*row_height;
 var canvas;
 var canvasWidth = grid_cols*col_width;
-var canvasHeight = grid_rows*row_height + 100;
+var canvasHeight = grid_rows*row_height + controlPanelHeight;
 
 let button_draw_tile;
 let drawnTile;
@@ -36,6 +39,80 @@ function windowResized() {
 
 function preload() {
     road_sprites = loadImage("/static/images/tiles.png");
+}
+
+class Resource {
+  constructor(id, color){
+    this.id = id;
+    this.color = color;
+  }
+}
+
+class GoalCard {
+  constructor(resource_ids, counts, sell, vps){
+    this.resource_ids = resource_ids;
+    this.counts = counts;
+    this.total_count = 0;
+    let mx = 0;
+    this.max_resource_id = 0;
+    for (var i = 0; i < counts.length; i++) {
+      this.total_count += counts[i];
+      if (counts[i] > mx) {
+        mx = counts[i];
+        this.max_resource_id = resource_ids[i];
+      }
+    }
+    this.sell = sell; // sells for this many max_resource_ids
+    this.vps = vps;
+
+    this.visible = false;
+    this.x = -1;
+    this.y = -1;
+    this.player_owner = -1;
+  }
+
+  render() {
+    if (!this.visible) { return; }
+
+    // draw card boundary
+    stroke(0);
+    fill(255);
+    rect(this.x, this.y, col_width, row_height);
+
+    // draw resource tokens
+    noStroke();
+    // different positions depending on total count
+    let x_offsets = [];
+    let y_offsets = [];
+    if (this.total_count === 3) {
+      x_offsets = [col_width/2 - col_width/5, col_width/2, col_width/2 + col_width/5];
+      y_offsets = [row_height/2, row_height/2, row_height/2];
+    } else if (this.total_count === 7) {
+      x_offsets = [col_width/2 - col_width/5, col_width/2, col_width/2 + col_width/5, col_width/5, 2*col_width/5, 3*col_width/5, 4*col_width/5];
+      y_offsets = [2*row_height/5, 2*row_height/5, 2*row_height/5, 3*row_height/5, 3*row_height/5, 3*row_height/5, 3*row_height/5];
+    }
+    let cid = 0; let cc = 0;
+    for (var i = 0; i < x_offsets.length; i++) {
+      fill(resourceColors[this.resource_ids[cid]]);
+      circle(this.x + x_offsets[i], this.y + y_offsets[i], goalResourceDiameter);
+      cc++;
+      if (cc > this.counts[cid]) { cc = 0; cid++; }
+    }
+
+    // mark sell value
+    textAlign(RIGHT, TOP);
+    textSize(10);
+    noStroke();
+    fill(resourceColors[this.max_resource_id]);
+    text(this.sell, this.x + col_width - 1, this.y);
+
+    // mark VPs
+    textAlign(RIGHT, BOTTOM);
+    textSize(10);
+    noStroke();
+    fill(0);
+    text(this.vps, this.x + col_width - 1, this.y + row_height);
+  }
 }
 
 class Token {
@@ -57,8 +134,10 @@ class Token {
       x = this.col * col_width;
       y = this.row * row_height;
     }
+    noStroke();
     fill(this.color);
-    rect(x-col_width/20, y-row_height/20, col_width+2*col_width/20, row_height+2*row_height/20);
+    // rect(x-col_width/20, y-row_height/20, col_width+2*col_width/20, row_height+2*row_height/20);
+    circle(x+col_width/2, y+row_height/2, col_width);
   }
 
   click(col, row) {
@@ -107,8 +186,8 @@ class Tile {
   }
   
   resetDrawnTileLocation() {
-    this.x = 1 * col_width;
-    this.y = (grid_rows+1) * row_height;
+    this.x = col_width/2;
+    this.y = (grid_rows * row_height) + row_height/2;
   }
 
   rotate() {
@@ -215,34 +294,6 @@ class Tile {
   }
 }
 
-function initializeTokens() {
-  playerTokens = [];
-  for (let i = 0; i < nPlayers; i++){
-    let clr = color(random(0,255),random(0,255),random(0,255),100);
-    playerTokens[i] = new Token(i, HOME_TILE_COL, HOME_TILE_ROW, clr);
-    tiles[HOME_TILE_COL][HOME_TILE_ROW].playerTokenId = i;
-    // warning: this only allows one token per tile
-    // need to allow home token to have multiple
-  }
-}
-
-function initializeTiles() {
-  // initialize all tiles
-  tiles = [];
-  for (let col = 0; col < grid_cols; col++){
-    tiles[col] = [];
-    for (let row = 0; row < grid_rows; row++){
-      tiles[col][row] = new Tile(col, row, true);
-    }
-  }
-
-  // set HOME tile
-  tiles[HOME_TILE_COL][HOME_TILE_ROW].tile_id = tileCount-1;
-
-  // set DRAWN tile
-  drawnTile = new Tile(0, 0, false);
-}
-
 function drawRandomTile() {
   // draw a random tile and display it in the control panel
   if (drawnTile.hidden) {
@@ -277,26 +328,6 @@ function resetDrawnTile() {
         }
     }
   }
-}
-
-function setup() {
-  canvas = createCanvas(canvasWidth, canvasHeight);
-  canvas.parent('sketch-holder');
-  resourceDiameter = ceil(col_width/6);
-  initializeTiles();
-  initializeTokens();
-}
-
-function draw() {
-  background('#8cc63e');
-  
-  // draw control panel
-  fill(255);
-  rect(0, grid_rows*row_height, grid_cols*col_width, 100);
-
-  renderTiles();
-  renderTokens();
-  drawGridLines();
 }
 
 function mouseClicked() {
@@ -335,6 +366,73 @@ function mouseClicked() {
   }
 }
 
+
+function initializeTokens() {
+  playerTokens = [];
+  for (let i = 0; i < nPlayers; i++){
+    let clr = color(random(0,255),random(0,255),random(0,255),100);
+    playerTokens[i] = new Token(i, HOME_TILE_COL, HOME_TILE_ROW, clr);
+    tiles[HOME_TILE_COL][HOME_TILE_ROW].playerTokenId = i;
+    // warning: this only allows one token per tile
+    // need to allow home token to have multiple
+  }
+}
+
+function initializeTiles() {
+  // initialize all tiles
+  tiles = [];
+  for (let col = 0; col < grid_cols; col++){
+    tiles[col] = [];
+    for (let row = 0; row < grid_rows; row++){
+      tiles[col][row] = new Tile(col, row, true);
+    }
+  }
+
+  // set HOME tile
+  tiles[HOME_TILE_COL][HOME_TILE_ROW].tile_id = tileCount-1;
+
+  // set DRAWN tile
+  drawnTile = new Tile(0, 0, false);
+}
+
+function initializeGoalCards() {
+  goalCards = [];
+
+  let cg = 0;
+  goalCards[cg] = new GoalCard([0],[3],2,3);
+  goalCards[cg].visible = true;
+  goalCards[cg].x = 2*col_width + col_width/2;
+  goalCards[cg].y = (grid_rows * row_height) + row_height/2;
+
+  cg++;
+  goalCards[cg] = new GoalCard([0],[7],2,3);
+  goalCards[cg].visible = true;
+  goalCards[cg].x = 3*col_width + col_width/2;
+  goalCards[cg].y = (grid_rows * row_height) + row_height/2;
+
+  cg++;
+  goalCards[cg] = new GoalCard([0,1],[4,3],2,3);
+  goalCards[cg].visible = true;
+  goalCards[cg].x = 4*col_width + col_width/2;
+  goalCards[cg].y = (grid_rows * row_height) + row_height/2;
+
+  cg++;
+  goalCards[cg] = new GoalCard([0,1],[5,2],2,3);
+  goalCards[cg].visible = true;
+  goalCards[cg].x = 5*col_width + col_width/2;
+  goalCards[cg].y = (grid_rows * row_height) + row_height/2;
+}
+
+function setup() {
+  canvas = createCanvas(canvasWidth, canvasHeight);
+  canvas.parent('sketch-holder');
+  resourceDiameter = ceil(col_width/6);
+  goalResourceDiameter = ceil(col_width/6);
+  initializeGoalCards();
+  initializeTiles();
+  initializeTokens();
+}
+
 function renderTiles() {
   // loop over each cell
   for (let col = 0; col < grid_cols; col++) {
@@ -360,6 +458,12 @@ function renderTokens() {
   }
 }
 
+function renderGoalCards() {
+  for (var i = 0; i < goalCards.length; i++) {
+    goalCards[i].render();
+  }
+}
+
 function drawGridLines() {
   // draw grid lines
   stroke(100, 100, 100, 50);
@@ -371,6 +475,18 @@ function drawGridLines() {
   }
 }
 
+function draw() {
+  background('#8cc63e');
+  
+  // draw control panel
+  fill(255);
+  rect(0, grid_rows*row_height, grid_cols*col_width, controlPanelHeight);
+
+  renderGoalCards();
+  renderTiles();
+  renderTokens();
+  drawGridLines();
+}
 
 function addHandlers() {
   $("#draw-tile").click(drawRandomTile);

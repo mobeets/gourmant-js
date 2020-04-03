@@ -60,10 +60,15 @@ input[type=range] {
     text-align: center;
     white-space: nowrap;
     vertical-align: middle;
-    background-color: gray;
     color: white;
+}
+.btn-resource {
+    background-color: lightgray;
+}
+.btn-vp {
+    background-color: darkred;
 }
 
 .slider-container {
-    width: 8em;
+    width: 1em;
 }
