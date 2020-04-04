@@ -85,7 +85,7 @@ input[type=range] {
     -webkit-border-radius: 20;
     -moz-border-radius: 20;
     border-radius: 20px;
-    width: 23em;
+    width: 27em;
     margin-bottom: 0.5em;
 }
 .player-1-controls {
@@ -104,7 +104,12 @@ input[type=range] {
     color: black;
 }
 
-.resource-1 {
+.btn-player {
+    width: 5em;
+    color: black;
+}
+
+/*.resource-1 {
     color: yellow;
 }
 .resource-2 {
@@ -115,5 +120,5 @@ input[type=range] {
 }
 .resource-4 {
     color: purple;
-}
+}*/
 

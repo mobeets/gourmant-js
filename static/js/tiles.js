@@ -11,6 +11,7 @@ let road_sprites;
 let tiles;
 let playerTokens;
 let goalCards;
+let players;
 let nCardsPerTier = 4;
 let nPlayers = 2;
 let HOME_TILE_COL = 9;
@@ -156,6 +157,18 @@ class GoalCard {
       fill(playerTokens[this.player_id].color);
       rect(this.x, this.y, col_width, row_height);
     }
+  }
+}
+
+class Player {
+  constructor(id, token){
+    this.id = id;
+    this.token = token;
+    this.resources = [];
+    for (var i = 0; i < resourceColors.length; i++) {
+      this.resources[i] = 0;
+    }
+    this.vp = 0;
   }
 }
 
@@ -422,6 +435,7 @@ function mouseClicked() {
 
 function initializeTokens() {
   playerTokens = [];
+  players = [];
   for (let i = 0; i < nPlayers; i++){
     let clr;
     if (i === 0) {
@@ -432,6 +446,7 @@ function initializeTokens() {
       clr = color(180, 180, 180, 100);
     }
     playerTokens[i] = new Token(i, HOME_TILE_COL, HOME_TILE_ROW, clr);
+    players[i] = new Player(i, playerTokens[i]);
     tiles[HOME_TILE_COL][HOME_TILE_ROW].playerTokenId = i;
     // warning: this only allows one token per tile
     // need to allow home token to have multiple
@@ -571,6 +586,15 @@ function drawGridLines() {
   }
 }
 
+function updateScores() {
+  for (var i = 0; i < players.length; i++) {
+    for (var j = 0; j < players[i].resources.length; j++) {
+      $('.player-' + (i+1).toString() + '.resource-' + (j+1).toString()).html(players[i].resources[j]);
+    }
+    $('.player-' + (i+1).toString() + '.vp-1').html(players[i].vp);
+  }
+}
+
 function draw() {
   background('#8cc63e');
   
@@ -582,11 +606,65 @@ function draw() {
   renderTiles();
   renderTokens();
   drawGridLines();
+  updateScores();
+}
+
+function findCounter(elem) {
+  let cPlayerId = -1;
+  for (var i = 0; i < players.length; i++) {
+    if ($(elem).siblings('.player-' + (i+1).toString()).length > 0) {
+      cPlayerId = i;
+    }
+  }
+
+  let cResourceId = -1;
+  for (var i = 0; i < resourceColors.length; i++) {
+    if ($(elem).siblings('.resource-' + (i+1).toString()).length > 0) {
+      cResourceId = i;
+    }
+  }
+
+  let cVpId = -1;
+  if ($(elem).siblings('.vp-1').length > 0) {
+    cVpId = 1;
+  }
+  return [cPlayerId, cResourceId, cVpId];
+}
+
+function incrementCounter() {
+  let elems = findCounter(this);
+  console.log(elems);
+  if (elems[0] > -1 && elems[1] > -1) {
+    players[elems[0]].resources[elems[1]]++;
+  } else if (elems[0] > -1 && elems[2] > -1) {
+    players[elems[0]].vp++;
+  }
+}
+
+function decrementCounter() {
+  let elems = findCounter(this);
+  if (elems[0] > -1 && elems[1] > -1) {
+    if (players[elems[0]].resources[elems[1]] > 0) {
+      players[elems[0]].resources[elems[1]]--;
+    }
+  } else if (elems[0] > -1 && elems[2] > -1) {
+    if (players[elems[0]].vp > 0) {
+      players[elems[0]].vp--;
+    }
+  }
 }
 
 function addHandlers() {
   $("#draw-tile").click(drawRandomTile);
   $("#reset-tile").click(resetDrawnTile);
+  $('.counter-increment').click(incrementCounter);
+  $('.counter-decrement').click(decrementCounter);
+
+  // style colors of resource counters
+  for (var i = 0; i < resourceColors.length; i++) {
+    $('.resource-' + i.toString()).parent().parent().css('border-color', resourceColors[i]);
+    $('.resource-' + i.toString()).css('color', resourceColors[i]);
+  }
 }
 
 $(document).ready(function() {
