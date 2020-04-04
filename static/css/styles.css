@@ -55,20 +55,65 @@ input[type=range] {
     line-height: 1.5;
     display: inline-block;
     padding: 6px 12px;
-    margin-bottom: 1em;
+    margin: 0.5em;
+    /*margin-bottom: 1em;*/
     font-weight: 400;
     text-align: center;
     white-space: nowrap;
     vertical-align: middle;
     color: white;
 }
-.btn-resource {
-    background-color: lightgray;
-}
+
 .btn-vp {
-    background-color: darkred;
+    background-color: black;
 }
 
 .slider-container {
     width: 1em;
 }
+
+.counter-decrement {
+    cursor: pointer;
+    font-size: 1em;
+}
+.counter-increment {
+    cursor: pointer;
+    font-size: 1em;
+}
+
+.player-controls {
+    -webkit-border-radius: 20;
+    -moz-border-radius: 20;
+    border-radius: 20px;
+    width: 23em;
+    margin-bottom: 0.5em;
+}
+.player-1-controls {
+    border: 0.2em solid;
+    border-color: rgba(255,0,0,0.5);
+}
+.player-2-controls {
+    border: 0.2em solid;
+    border-color: rgba(0,0,255,0.5);
+}
+
+.btn-resource {
+    /*background-color: lightgray;*/
+    border: 0.2em solid;
+    border-color: lightgray;
+    color: black;
+}
+
+.resource-1 {
+    color: yellow;
+}
+.resource-2 {
+    color: green;
+}
+.resource-3 {
+    color: red;
+}
+.resource-4 {
+    color: purple;
+}
+

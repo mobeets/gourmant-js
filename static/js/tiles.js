@@ -1,7 +1,7 @@
 // require https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.5.14/p5.js
 // require https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.5.14/addons/p5.dom.js
 
-let grid_cols = 20;
+let grid_cols = 18;
 let grid_rows = 8;
 let row_height = 32;
 let col_width = 32;
@@ -75,8 +75,6 @@ class GoalCard {
       this.vps = 15;
       this.sell = 0;
     }
-    // console.log('Goal card');
-    // console.log([this.tier, this.vps, mx]);
 
     this.visible = false;
     this.x = -1;
@@ -425,7 +423,14 @@ function mouseClicked() {
 function initializeTokens() {
   playerTokens = [];
   for (let i = 0; i < nPlayers; i++){
-    let clr = color((nPlayers-1-i)*round(255/nPlayers),0,i*round(255/nPlayers),100);
+    let clr;
+    if (i === 0) {
+      clr = color(255, 0, 0, 100);
+    } else if (i === 1) {
+      clr = color(0, 0, 255, 100);
+    } else {
+      clr = color(180, 180, 180, 100);
+    }
     playerTokens[i] = new Token(i, HOME_TILE_COL, HOME_TILE_ROW, clr);
     tiles[HOME_TILE_COL][HOME_TILE_ROW].playerTokenId = i;
     // warning: this only allows one token per tile
@@ -496,7 +501,6 @@ function initializeGoalCards() {
     cg++;
     goalCoardCounts[2]++;
   }
-  console.log(goalCoardCounts);
 
   // choose random nCardsPerTier for each tier
   // and display evenly spaced out in groups

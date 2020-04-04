@@ -2,6 +2,8 @@
 MINOR TODOS
 ---------------------
 
+- make Restart button work
+
 ---------------------
 DESIRED INTERACTIONS
 ---------------------
@@ -51,12 +53,16 @@ STAGES: NEXT
 
 9. Add (compact) counters for four resources, with +/-, and color; also one for VPs
 	- [x] layout
-	- [ ] render (set colors programmatically)
+	- [x] get player color to border all buttons
+	- [ ] set resource colors programmatically
 	- [ ] functionality
 
-10. allow buying goal cards
+10. allow moving both player tokens
+	- this will require letting the HOME tiler have multiple player ids
+
+11. allow buying goal cards
 	- action: select/highlight goal card by clicking, then click "Buy" button
 	- then: goal card disappears and is replaced, resource counters deplete by the appropriate amount, and VP count increases
 
-11. generate an actual deck of tiles (rather than infinites of each type)
+12. generate an actual deck of tiles (rather than infinites of each type)
 	- pre-create all possible Tile()s, and then have their location set to be invisible or whatever
