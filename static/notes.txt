@@ -38,21 +38,21 @@ STAGES: FINISHED
 
 6. allow moving player tokens by clicking on it, then clicking its new location
 
+7. create GoalCard() object and design
+	- [x] render
+	- [x] make top tier goal cards
+	- [x] generate full deck
+
+8. randomly display N GoalCards in control panel
+
 ---------------------
 STAGES: NEXT
 ---------------------
 
-7. Add (compact) counters for four resources, with +/-, and color; also one for VPs
+9. Add (compact) counters for four resources, with +/-, and color; also one for VPs
 	- [x] layout
 	- [ ] render (set colors programmatically)
 	- [ ] functionality
-
-8. create GoalCard() object and design
-	- [x] render
-	- [ ] make top tier goal cards
-	- [ ] generate full deck
-
-9. randomly display N GoalCards in control panel
 
 10. allow buying goal cards
 	- action: select/highlight goal card by clicking, then click "Buy" button

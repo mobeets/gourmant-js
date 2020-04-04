@@ -12,10 +12,9 @@ let tiles;
 let playerTokens;
 let goalCards;
 let nCardsPerTier = 4;
-let nPlayers = 1;
+let nPlayers = 2;
 let HOME_TILE_COL = 9;
 let HOME_TILE_ROW = 3;
-let currentPlayerId = 0;
 
 // sprite tile info
 let sprite_size = 32;
@@ -92,7 +91,14 @@ class GoalCard {
   }
 
   click() {
-    this.player_id = currentPlayerId;
+    if (this.player_id === -1) {
+      this.player_id = 0;
+    } else {
+      this.player_id++;
+    }
+    if (this.player_id === nPlayers) {
+      this.player_id = -1;
+    }
   }
 
   render() {
@@ -150,7 +156,7 @@ class GoalCard {
     if (this.player_id > -1) {
       noStroke();
       fill(playerTokens[this.player_id].color);
-      circle(this.x+col_width/2, this.y+row_height/2, col_width);
+      rect(this.x, this.y, col_width, row_height);
     }
   }
 }
@@ -387,7 +393,15 @@ function mouseClicked() {
       return;
     }
   }
-  
+
+  // check if a goal card was clicked
+  for (let i = 0; i < goalCards.length; i++) {
+    if (goalCards[i].visible && mouseX >= goalCards[i].x && mouseX <= goalCards[i].x+col_width && mouseY >= goalCards[i].y && mouseY <= goalCards[i].y+row_height) {
+      goalCards[i].click();
+      return;
+    }
+  }
+
   // check if a tile was clicked
   if (col >= 0 && row >= 0 && col < tiles.length && row < tiles[col].length) {
     if (drawnTile.isBeingDragged) {
@@ -411,7 +425,7 @@ function mouseClicked() {
 function initializeTokens() {
   playerTokens = [];
   for (let i = 0; i < nPlayers; i++){
-    let clr = color(random(0,255),random(0,255),random(0,255),100);
+    let clr = color((nPlayers-1-i)*round(255/nPlayers),0,i*round(255/nPlayers),100);
     playerTokens[i] = new Token(i, HOME_TILE_COL, HOME_TILE_ROW, clr);
     tiles[HOME_TILE_COL][HOME_TILE_ROW].playerTokenId = i;
     // warning: this only allows one token per tile
