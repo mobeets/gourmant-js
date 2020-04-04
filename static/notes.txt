@@ -2,7 +2,7 @@
 MINOR TODOS
 ---------------------
 
-- make Restart button work
+- substitute "Draw tile" button with an image of a deck inside the canvas where the drawn tile goes
 
 ---------------------
 DESIRED INTERACTIONS
@@ -47,15 +47,15 @@ STAGES: FINISHED
 
 8. randomly display N GoalCards in control panel
 
----------------------
-STAGES: NEXT
----------------------
-
 9. Add (compact) counters for four resources, with +/-, and color; also one for VPs
 	- [x] layout
 	- [x] get player color to border all buttons
-	- [ ] set resource colors programmatically
-	- [ ] functionality
+	- [x] set resource colors programmatically
+	- [x] functionality
+
+---------------------
+STAGES: NEXT
+---------------------
 
 10. allow moving both player tokens
 	- this will require letting the HOME tiler have multiple player ids

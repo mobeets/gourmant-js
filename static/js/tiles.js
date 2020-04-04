@@ -202,10 +202,10 @@ class Token {
       if (col > 0 && row > 0) {
         // can only place on non-empty tile
         if (tiles[col][row].tile_id > -1) {
-          tiles[this.col][this.row].playerTokenId = -1;
+          tiles[this.col][this.row].rmPlayerFromToken(this.id);
           this.col = col;
           this.row = row;
-          tiles[col][row].playerTokenId = this.id;
+          tiles[col][row].addPlayerToToken(this.id);
           tiles[col][row].isLastPlaced = false;
         }
       }
@@ -226,7 +226,7 @@ class Tile {
     this.row = row;
     this.isOnBoard = isOnBoard;
     this.isLastPlaced = false;
-    this.playerTokenId = -1;
+    this.playerIdsOnToken = [];
     if (isOnBoard) {
       this.hidden = false;
       this.isDrawnTile = false;
@@ -245,6 +245,33 @@ class Tile {
   resetDrawnTileLocation() {
     this.x = col_width/2;
     this.y = (grid_rows * row_height) + row_height/2;
+  }
+
+  playerIdIsOnToken(i) {
+    for (var i = 0; i < this.playerIdsOnToken.length; i++) {
+      if (this.playerIdsOnToken[i] === j) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  isEmpty() {
+    return this.playerIdsOnToken.length === 0;
+  }
+
+  addPlayerToToken(i) {
+    this.playerIdsOnToken.push(i);
+  }
+
+  rmPlayerFromToken(j) {
+    let tmp = [];
+    for (var i = 0; i < this.playerIdsOnToken.length; i++) {
+      if (this.playerIdsOnToken[i] != j) {
+        tmp.push(this.playerIdsOnToken[i]);
+      }
+    }
+    this.playerIdsOnToken = tmp;
   }
 
   rotate() {
@@ -417,8 +444,8 @@ function mouseClicked() {
   if (col >= 0 && row >= 0 && col < tiles.length && row < tiles[col].length) {
     if (drawnTile.isBeingDragged) {
       tiles[col][row].click();
-    } else if (tiles[col][row].playerTokenId > -1) {
-      playerTokens[tiles[col][row].playerTokenId].click();
+    } else if (!tiles[col][row].isEmpty()) {
+      playerTokens[tiles[col][row].playerIdsOnToken[0]].click();
     } else {
       tiles[col][row].click();
     }
@@ -447,9 +474,7 @@ function initializeTokens() {
     }
     playerTokens[i] = new Token(i, HOME_TILE_COL, HOME_TILE_ROW, clr);
     players[i] = new Player(i, playerTokens[i]);
-    tiles[HOME_TILE_COL][HOME_TILE_ROW].playerTokenId = i;
-    // warning: this only allows one token per tile
-    // need to allow home token to have multiple
+    tiles[HOME_TILE_COL][HOME_TILE_ROW].addPlayerToToken(i);
   }
 }
 
