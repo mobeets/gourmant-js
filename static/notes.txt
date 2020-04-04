@@ -49,6 +49,7 @@ STAGES: NEXT
 
 8. create GoalCard() object and design
 	- [x] render
+	- [ ] make top tier goal cards
 	- [ ] generate full deck
 
 9. randomly display N GoalCards in control panel

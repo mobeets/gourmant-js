@@ -11,9 +11,11 @@ let road_sprites;
 let tiles;
 let playerTokens;
 let goalCards;
+let nCardsPerTier = 4;
 let nPlayers = 1;
 let HOME_TILE_COL = 9;
 let HOME_TILE_ROW = 3;
+let currentPlayerId = 0;
 
 // sprite tile info
 let sprite_size = 32;
@@ -54,6 +56,7 @@ class GoalCard {
     this.counts = counts;
     this.tier = tier;
     this.total_count = 0;
+    this.player_id = -1;
     let mx = 0;
     this.primary_resource_id = 0;
     for (var i = 0; i < counts.length; i++) {
@@ -66,8 +69,11 @@ class GoalCard {
     if (this.tier === 1) {
       this.vps = mx-1;
       this.sell = mx+1;
-    } else {
+    } else if (this.tier == 2) {
       this.vps = mx+1;
+      this.sell = 0;
+    } else {
+      this.vps = 15;
       this.sell = 0;
     }
     // console.log('Goal card');
@@ -85,6 +91,10 @@ class GoalCard {
     this.visible = true;
   }
 
+  click() {
+    this.player_id = currentPlayerId;
+  }
+
   render() {
     if (!this.visible) { return; }
 
@@ -98,19 +108,26 @@ class GoalCard {
     // different positions depending on total count
     let x_offsets = [];
     let y_offsets = [];
-    if (this.total_count === 3) {
+    let diam;
+    if (this.tier === 3) { // two
+      x_offsets = [col_width/2, col_width/2];
+      y_offsets = [row_height/3, 2*row_height/3];
+      diam = 1.5*goalResourceDiameter;
+    } else if (this.total_count === 3) { // three
       x_offsets = [col_width/2 - col_width/5, col_width/2, col_width/2 + col_width/5];
       y_offsets = [row_height/2, row_height/2, row_height/2];
-    } else if (this.total_count === 7) {
+      diam = goalResourceDiameter;
+    } else if (this.total_count === 7) { // seven
       x_offsets = [col_width/2 - col_width/5, col_width/2, col_width/2 + col_width/5, col_width/5, 2*col_width/5, 3*col_width/5, 4*col_width/5];
       y_offsets = [2*row_height/5, 2*row_height/5, 2*row_height/5, 3*row_height/5, 3*row_height/5, 3*row_height/5, 3*row_height/5];
+      diam = goalResourceDiameter;
     }
     let cid = 0; let cc = 0;
     for (var i = 0; i < x_offsets.length; i++) {
       cc++;
       if (cc > this.counts[cid]) { cc = 0; cid++; }
       fill(resourceColors[this.resource_ids[cid]]);
-      circle(this.x + x_offsets[i], this.y + y_offsets[i], goalResourceDiameter);
+      circle(this.x + x_offsets[i], this.y + y_offsets[i], diam);
     }
 
     // mark sell value
@@ -128,6 +145,13 @@ class GoalCard {
     noStroke();
     fill(0);
     text(this.vps, this.x + col_width - 1, this.y);
+
+    // mark with player token
+    if (this.player_id > -1) {
+      noStroke();
+      fill(playerTokens[this.player_id].color);
+      circle(this.x+col_width/2, this.y+row_height/2, col_width);
+    }
   }
 }
 
@@ -415,23 +439,65 @@ function initializeTiles() {
 function initializeGoalCards() {
   goalCards = [];
 
+  // generate all goal cards,
+  // and keep track of counts in each tier
   let cg = 0;
+  let goalCoardCounts = [0,0,0];
   for (var i = 0; i < resourceColors.length; i++) {
     goalCards[cg] = new GoalCard([i],[3],1);
     cg++;
+    goalCoardCounts[0]++;
+
     goalCards[cg] = new GoalCard([i,(i+1)%resourceColors.length],[2,1],1);
     cg++;
+    goalCoardCounts[0]++;
+  }
+  for (var i = 0; i < resourceColors.length; i++) {
     goalCards[cg] = new GoalCard([i],[7],2);
     cg++;
+    goalCoardCounts[1]++;
+
     goalCards[cg] = new GoalCard([i,(i+2)%resourceColors.length],[5,2],2);
     cg++;
+    goalCoardCounts[1]++;
+
     goalCards[cg] = new GoalCard([i,(i+3)%resourceColors.length],[4,3],2);
     cg++;
+    goalCoardCounts[1]++;
   }
+  for (var i = 0; i < resourceColors.length; i++) {
+    goalCards[cg] = new GoalCard([i],[2],3);
+    cg++;
+    goalCoardCounts[2]++;
 
-  for (var i = 0; i < 4; i++) {
-    let gid = round(random(-0.499, goalCards.length+0.499));
-    goalCards[gid].reveal(i);
+    goalCards[cg] = new GoalCard([i,(i+1)%resourceColors.length],[1,1],3);
+    cg++;
+    goalCoardCounts[2]++;
+
+    goalCards[cg] = new GoalCard([i,(i+2)%resourceColors.length],[1,1],3);
+    cg++;
+    goalCoardCounts[2]++;
+
+    goalCards[cg] = new GoalCard([i,(i+3)%resourceColors.length],[1,1],3);
+    cg++;
+    goalCoardCounts[2]++;
+  }
+  console.log(goalCoardCounts);
+
+  // choose random nCardsPerTier for each tier
+  // and display evenly spaced out in groups
+  let offset = 0;
+  let xoffset = 0;
+  for (var tier = 0; tier < 3; tier++) {
+    for (var i = 0; i < nCardsPerTier; i++) {
+      let gid = round(random(offset+-0.499, offset+(goalCoardCounts[tier]-1)+0.499));
+      while (goalCards[gid].visible) {
+        gid = round(random(offset+-0.499, offset+(goalCoardCounts[tier]-1)+0.499));
+      }
+      goalCards[gid].reveal(xoffset+i);
+    }
+    offset += goalCoardCounts[tier];
+    xoffset += nCardsPerTier + 0.5;
   }
 }
 
