@@ -1,7 +1,7 @@
 // require https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.5.14/p5.js
 // require https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.5.14/addons/p5.dom.js
 
-let grid_cols = 12;
+let grid_cols = 20;
 let grid_rows = 8;
 let row_height = 32;
 let col_width = 32;
@@ -12,7 +12,7 @@ let tiles;
 let playerTokens;
 let goalCards;
 let nPlayers = 1;
-let HOME_TILE_COL = 3;
+let HOME_TILE_COL = 9;
 let HOME_TILE_ROW = 3;
 
 // sprite tile info
@@ -49,26 +49,40 @@ class Resource {
 }
 
 class GoalCard {
-  constructor(resource_ids, counts, sell, vps){
+  constructor(resource_ids, counts, tier){
     this.resource_ids = resource_ids;
     this.counts = counts;
+    this.tier = tier;
     this.total_count = 0;
     let mx = 0;
-    this.max_resource_id = 0;
+    this.primary_resource_id = 0;
     for (var i = 0; i < counts.length; i++) {
       this.total_count += counts[i];
       if (counts[i] > mx) {
         mx = counts[i];
-        this.max_resource_id = resource_ids[i];
+        this.primary_resource_id = resource_ids[i];
       }
     }
-    this.sell = sell; // sells for this many max_resource_ids
-    this.vps = vps;
+    if (this.tier === 1) {
+      this.vps = mx-1;
+      this.sell = mx+1;
+    } else {
+      this.vps = mx+1;
+      this.sell = 0;
+    }
+    // console.log('Goal card');
+    // console.log([this.tier, this.vps, mx]);
 
     this.visible = false;
     this.x = -1;
     this.y = -1;
     this.player_owner = -1;
+  }
+
+  reveal(loc) {
+    this.x = 0.1*loc*col_width + (loc+2)*col_width + col_width/2;
+    this.y = (grid_rows * row_height) + row_height/2;
+    this.visible = true;
   }
 
   render() {
@@ -93,25 +107,27 @@ class GoalCard {
     }
     let cid = 0; let cc = 0;
     for (var i = 0; i < x_offsets.length; i++) {
-      fill(resourceColors[this.resource_ids[cid]]);
-      circle(this.x + x_offsets[i], this.y + y_offsets[i], goalResourceDiameter);
       cc++;
       if (cc > this.counts[cid]) { cc = 0; cid++; }
+      fill(resourceColors[this.resource_ids[cid]]);
+      circle(this.x + x_offsets[i], this.y + y_offsets[i], goalResourceDiameter);
     }
 
     // mark sell value
+    if (this.sell > 0) {
+      textAlign(RIGHT, BOTTOM);
+      textSize(10);
+      noStroke();
+      fill(resourceColors[this.primary_resource_id]);
+      text(this.sell, this.x + col_width - 1, this.y + row_height);
+    }
+
+    // mark VPs
     textAlign(RIGHT, TOP);
     textSize(10);
     noStroke();
-    fill(resourceColors[this.max_resource_id]);
-    text(this.sell, this.x + col_width - 1, this.y);
-
-    // mark VPs
-    textAlign(RIGHT, BOTTOM);
-    textSize(10);
-    noStroke();
     fill(0);
-    text(this.vps, this.x + col_width - 1, this.y + row_height);
+    text(this.vps, this.x + col_width - 1, this.y);
   }
 }
 
@@ -231,6 +247,7 @@ class Tile {
     if (this.resource_id > -1) {
       // textAlign(LEFT, TOP);
       // text(res,x,y);
+      noStroke();
       fill(resourceColors[this.resource_id]);
       if (this.resource_corner === 0) {
         circle(x+resourceDiameter, y+resourceDiameter, resourceDiameter);
@@ -399,28 +416,23 @@ function initializeGoalCards() {
   goalCards = [];
 
   let cg = 0;
-  goalCards[cg] = new GoalCard([0],[3],2,3);
-  goalCards[cg].visible = true;
-  goalCards[cg].x = 2*col_width + col_width/2;
-  goalCards[cg].y = (grid_rows * row_height) + row_height/2;
+  for (var i = 0; i < resourceColors.length; i++) {
+    goalCards[cg] = new GoalCard([i],[3],1);
+    cg++;
+    goalCards[cg] = new GoalCard([i,(i+1)%resourceColors.length],[2,1],1);
+    cg++;
+    goalCards[cg] = new GoalCard([i],[7],2);
+    cg++;
+    goalCards[cg] = new GoalCard([i,(i+2)%resourceColors.length],[5,2],2);
+    cg++;
+    goalCards[cg] = new GoalCard([i,(i+3)%resourceColors.length],[4,3],2);
+    cg++;
+  }
 
-  cg++;
-  goalCards[cg] = new GoalCard([0],[7],2,3);
-  goalCards[cg].visible = true;
-  goalCards[cg].x = 3*col_width + col_width/2;
-  goalCards[cg].y = (grid_rows * row_height) + row_height/2;
-
-  cg++;
-  goalCards[cg] = new GoalCard([0,1],[4,3],2,3);
-  goalCards[cg].visible = true;
-  goalCards[cg].x = 4*col_width + col_width/2;
-  goalCards[cg].y = (grid_rows * row_height) + row_height/2;
-
-  cg++;
-  goalCards[cg] = new GoalCard([0,1],[5,2],2,3);
-  goalCards[cg].visible = true;
-  goalCards[cg].x = 5*col_width + col_width/2;
-  goalCards[cg].y = (grid_rows * row_height) + row_height/2;
+  for (var i = 0; i < 4; i++) {
+    let gid = round(random(-0.499, goalCards.length+0.499));
+    goalCards[gid].reveal(i);
+  }
 }
 
 function setup() {

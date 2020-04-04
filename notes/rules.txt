@@ -1,0 +1,52 @@
+Pieces:
+- map tiles, each marked with one of four resource shields
+- goal cards
+	- each card with a resource price for buying, and a separate price for trading
+		- each card has a 'primary' resource corresponding to whichever resources it requires most of to buy
+	- each card has a tier: lower, middle, or top
+		- lower and middle tier cards are bought using the # of resources shown on the card
+		- the top tier cards are not bought, but are received whenever the player owns the right type of goal cards
+	- each card has a VP
+		- lower tier VP = # of primary resources
+			- e.g., 3 green on a green primary card = 3 VP
+		- middle tier = 2*(lower tier VP)
+		- top tier = 4 for cards of the same color, 2 for different
+- four piles of resource tokens (e.g., from Pandemic)
+- player markers
+- two portal tokens per player
+
+Game setup:
+- place the HOME tile, and both players' markers on the HOME tile
+- place five random goal cards face-up for each of three tiers (so 15 cards total) in a designated area ("goal pit" below)
+- each player gets two portal tokens
+- four piles of resources tokens
+
+Turn:
+- draw and place a tile
+- now move your player token, choosing one of the following options:
+	- to next intersection: move your player token along one of the adjacent paths, stopping at the next intersection
+		- you now collect whichever tokens corresponding to the resource shields you passed while moving along the path. two exceptions:
+			- if you took this same path (in either direction) on your last turn, you collect zero total tokens
+			- if you passed the same shield on your last turn and collected a token for it, you do not collect any tokens on this turn for that same shield
+			- note that waiting a turn to move would let you move back along the same path you previously went down and collect the resources again
+	- to HOME
+		- you do not collect any resources
+	- to one of your placed player portals
+		- you do not collect any resources
+- player may now optionally place one of their portal tokens wherever they currently are on the map
+	- you cannot move a portal token once it is placed
+- if your player token is currently at HOME, you may buy goal cards
+	- to buy a goal card, pay the resource tokens as marked on the goal card, and take the goal card from the "goal pit"
+		- you may trade in any number of previously bought goal cards to buy a new goal card, using the number in the bottom righthand corner of each goal card as their credits
+		- when cards are traded in they are sent to the discard pile
+	- whenever a player is eligible for one of the top-tier cards, they get that card
+		- note however that goal cards cannot go towards multiple top-tier cards. e.g., if you have two gold middle-tier cards, and get the  double-gold top-tier card, you cannot use either of those two gold cards to get a different top-tier card
+
+Game ends when either all map tiles are gone, or when all of the top-tier goal cards have been bought.
+
+The player with the most victory points wins.
+
+--------
+
+
+
