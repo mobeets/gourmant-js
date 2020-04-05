@@ -85,7 +85,7 @@ input[type=range] {
     -webkit-border-radius: 20;
     -moz-border-radius: 20;
     border-radius: 20px;
-    width: 27em;
+    width: 28em;
     margin-bottom: 0.5em;
 }
 .player-1-controls {
@@ -100,8 +100,12 @@ input[type=range] {
 .btn-resource {
     /*background-color: lightgray;*/
     border: 0.2em solid;
-    border-color: lightgray;
+    border-color: black;
     color: black;
+}
+.btn-vp {
+    border: 0.2em solid;
+    border-color: black;
 }
 
 .btn-player {
@@ -109,16 +113,11 @@ input[type=range] {
     color: black;
 }
 
-/*.resource-1 {
-    color: yellow;
+.arrow-up {
+    width: 0;
+    height: 0;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-bottom: 8px solid black;
+    padding-bottom: -2em;
 }
-.resource-2 {
-    color: green;
-}
-.resource-3 {
-    color: red;
-}
-.resource-4 {
-    color: purple;
-}*/
-

@@ -3,6 +3,7 @@ MINOR TODOS
 ---------------------
 
 - substitute "Draw tile" button with an image of a deck inside the canvas where the drawn tile goes
+- make the '-' button a little bigger, and prevent text highlighting on those buttons
 
 ---------------------
 DESIRED INTERACTIONS
@@ -53,16 +54,24 @@ STAGES: FINISHED
 	- [x] set resource colors programmatically
 	- [x] functionality
 
+10. allow moving both player tokens
+	- this will require letting the HOME tiler have multiple player ids
+
 ---------------------
 STAGES: NEXT
 ---------------------
 
-10. allow moving both player tokens
-	- this will require letting the HOME tiler have multiple player ids
+11. add portals
+	- each player's controls have two portals (triangles, as text)
+	- when you click one:
+		- it places a portal icon on wherever that player's token currently is
+			- if it's on HOME, then this doesn't work
+		- it dulls out the portal icon in the controls
 
-11. allow buying goal cards
-	- action: select/highlight goal card by clicking, then click "Buy" button
-	- then: goal card disappears and is replaced, resource counters deplete by the appropriate amount, and VP count increases
+12. consider implementing 'buying' goal cards
+	- currently, you can 'buy' by highlighting, but then it will never be replaced; should i change this to do the below?
+		- action: select/highlight goal card by clicking, then click "Buy" button
+		- then: goal card disappears and is replaced, resource counters deplete by the appropriate amount, and VP count increases
 
-12. generate an actual deck of tiles (rather than infinites of each type)
+13. generate an actual deck of tiles (rather than infinites of each type)
 	- pre-create all possible Tile()s, and then have their location set to be invisible or whatever

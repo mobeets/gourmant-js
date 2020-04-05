@@ -1,13 +1,17 @@
 // require https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.5.14/p5.js
 // require https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.5.14/addons/p5.dom.js
 
+// images
+let deck;
+let road_sprites_img;
+let tile_back_img;
+
 let grid_cols = 18;
 let grid_rows = 8;
 let row_height = 32;
 let col_width = 32;
 let resourceDiameter; // size of resource icon
 let goalResourceDiameter; // size on goal card
-let road_sprites;
 let tiles;
 let playerTokens;
 let goalCards;
@@ -40,7 +44,8 @@ function windowResized() {
 }
 
 function preload() {
-    road_sprites = loadImage("/static/images/tiles.png");
+    road_sprites_img = loadImage("/static/images/tiles.png");
+    tile_back_img = loadImage("/static/images/tile_back.png");
 }
 
 class Resource {
@@ -84,7 +89,7 @@ class GoalCard {
   }
 
   reveal(loc) {
-    this.x = 0.1*loc*col_width + (loc+2)*col_width + col_width/2;
+    this.x = 0.1*loc*col_width + (loc+2.5)*col_width + col_width/2;
     this.y = (grid_rows * row_height) + row_height/2;
     this.visible = true;
   }
@@ -216,6 +221,24 @@ class Token {
   }
 }
 
+class Deck {
+  constructor(){
+    this.x = 0.2*col_width;
+    this.y = (grid_rows * row_height) + row_height/2;
+  }
+
+  render() {
+    image(tile_back_img, this.x, this.y, col_width, row_height);
+  }
+
+  click() {
+    if (drawnTile.hidden) {
+      drawRandomTile();
+    }
+  }
+
+}
+
 class Tile {
 
   constructor(col, row, isOnBoard){
@@ -231,11 +254,14 @@ class Tile {
       this.hidden = false;
       this.isDrawnTile = false;
     } else {
+      this.deck_x = 0.2*col_width;
+      this.deck_y = (grid_rows * row_height) + row_height/2;
       this.resetDrawnTile();
     }
   }
 
   resetDrawnTile() {
+    this.tile_id = -1;
     this.isDrawnTile = true;
     this.hidden = true;
     this.isBeingDragged = false;
@@ -243,8 +269,8 @@ class Tile {
   }
   
   resetDrawnTileLocation() {
-    this.x = col_width/2;
-    this.y = (grid_rows * row_height) + row_height/2;
+    this.x = this.deck_x + 1.1*col_width;
+    this.y = this.deck_y;
   }
 
   playerIdIsOnToken(i) {
@@ -311,7 +337,7 @@ class Tile {
     let sy = floor(this.tile_id / sprites_per_dim) * sprite_size;
 
     // draw it
-    image(road_sprites, x, y, col_width, row_height, sx, sy, sprite_size, sprite_size);
+    image(road_sprites_img, x, y, col_width, row_height, sx, sy, sprite_size, sprite_size);
     if (this.resource_id > -1) {
       // textAlign(LEFT, TOP);
       // text(res,x,y);
@@ -339,7 +365,7 @@ class Tile {
   }
 
   click() {
-    if (this.tile_id === -1) { // empty, so fill it with drawn tile
+    if (this.isOnBoard && this.tile_id === -1) { // empty tile clicked
       if (drawnTile.isBeingDragged) {
         // copy drawn tile, then hide drawn tile
         this.tile_id = drawnTile.tile_id;
@@ -392,7 +418,7 @@ function drawRandomTile() {
   }
 }
 
-function resetDrawnTile() {
+function undoPlacedTile() {
   // find the last drawn tile and put it back
   if (!drawnTile.hidden) {
     // cannot do this if a new tile has been drawn
@@ -452,6 +478,12 @@ function mouseClicked() {
     return;
   }
 
+  // check if deck was clicked
+  if (mouseX >= deck.x && mouseX < deck.x+col_width && mouseY >= deck.y && mouseY < deck.y+row_height) {
+    deck.click();
+    return;
+  }
+
   // check if drawn tile was clicked
   if (mouseX >= drawnTile.x && mouseX < drawnTile.x+col_width && mouseY >= drawnTile.y && mouseY < drawnTile.y+row_height) {
     drawnTile.click();
@@ -491,8 +523,12 @@ function initializeTiles() {
   // set HOME tile
   tiles[HOME_TILE_COL][HOME_TILE_ROW].tile_id = tileCount-1;
 
+  // set deck
+  deck = new Deck();
+
   // set DRAWN tile
   drawnTile = new Tile(0, 0, false);
+
 }
 
 function initializeGoalCards() {
@@ -566,7 +602,7 @@ function setup() {
   goalResourceDiameter = ceil(col_width/6);
   initializeGoalCards();
   initializeTiles();
-  initializeTokens();
+  initializeTokens();  
 }
 
 function renderTiles() {
@@ -582,6 +618,8 @@ function renderTiles() {
     drawnTile.y = mouseY - row_height/2;
   }
   drawnTile.render();
+
+  deck.render();
 }
 
 function renderTokens() {
@@ -681,7 +719,7 @@ function decrementCounter() {
 
 function addHandlers() {
   $("#draw-tile").click(drawRandomTile);
-  $("#reset-tile").click(resetDrawnTile);
+  $("#reset-tile").click(undoPlacedTile);
   $('.counter-increment').click(incrementCounter);
   $('.counter-decrement').click(decrementCounter);
 
