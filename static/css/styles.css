@@ -78,14 +78,14 @@ input[type=range] {
 }
 .counter-increment {
     cursor: pointer;
-    font-size: 1em;
+    font-size: 0.8em;
 }
 
 .player-controls {
     -webkit-border-radius: 20;
     -moz-border-radius: 20;
     border-radius: 20px;
-    width: 28em;
+    width: 30em;
     margin-bottom: 0.5em;
 }
 .player-1-controls {
