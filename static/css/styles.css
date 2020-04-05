@@ -81,7 +81,7 @@ input[type=range] {
     -webkit-border-radius: 20;
     -moz-border-radius: 20;
     border-radius: 20px;
-    width: 34em;
+    width: 39em;
     margin-bottom: 0.5em;
 }
 .player-1-controls {
@@ -136,4 +136,13 @@ input[type=range] {
         -ms-user-select: none; /* Internet Explorer/Edge */
             user-select: none; /* Non-prefixed version, currently
                                   supported by Chrome, Opera and Firefox */
+}
+
+.btn-buy {
+    margin-top: 0.6em;
+    background-color: #86d97c;
+}
+
+.btn-buy:hover {
+    background-color: #b6ebb0;
 }
