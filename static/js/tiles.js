@@ -233,7 +233,32 @@ class Deck {
 
   click() {
     if (drawnTile.hidden) {
-      drawRandomTile();
+      this.drawRandomTile();
+    }
+  }
+
+  randomize(card) {
+    // choose random tile (but not HOME) and resource
+    let roadIndex = round(random(-0.49, tileCount-2+0.49));
+    let roadResource = round(random(-0.49, resourceCount-1+0.49));
+    let resourceCorner = random([0,1,2,3]);
+
+    card.tile_id = roadIndex;
+    card.resource_id = roadResource;
+    card.resource_corner = resourceCorner;
+  }
+
+  drawRandomTile() {
+    // draw a random tile and display it in the control panel
+    if (drawnTile.hidden) {
+      this.randomize(drawnTile);
+      drawnTile.hidden = false;
+    }
+    // make sure other tiles are marked as fixed
+    for (let col = 0; col < grid_cols; col++) {
+      for (let row = 0; row < grid_rows; row++) {
+          tiles[col][row].isLastPlaced = false;
+      }
     }
   }
 
@@ -254,8 +279,6 @@ class Tile {
       this.hidden = false;
       this.isDrawnTile = false;
     } else {
-      this.deck_x = 0.2*col_width;
-      this.deck_y = (grid_rows * row_height) + row_height/2;
       this.resetDrawnTile();
     }
   }
@@ -269,8 +292,8 @@ class Tile {
   }
   
   resetDrawnTileLocation() {
-    this.x = this.deck_x + 1.1*col_width;
-    this.y = this.deck_y;
+    this.x = 1.3*col_width;
+    this.y = (grid_rows * row_height) + row_height/2;
   }
 
   playerIdIsOnToken(i) {
@@ -317,6 +340,13 @@ class Tile {
   render() {
     // tile is empty
     if (this.tile_id === -1) {
+      if (!this.isOnBoard && this.hidden) {
+        noFill();
+        strokeWeight(1);
+        rect(this.x, this.y, col_width, row_height);
+        textAlign(CENTER, CENTER);
+        text('Undo', this.x + col_width/2, this.y + row_height/2);
+      }
       return;
     }
 
@@ -384,36 +414,14 @@ class Tile {
         this.rotate();
       }
     } else if (this.isDrawnTile) {
-      if (!this.hidden && !this.isBeingDragged) {
+      if (this.hidden) {
+        undoPlacedTile();
+      } else if (!this.hidden && !this.isBeingDragged) {
         this.isBeingDragged = true;
       } else { // clicked in white area, so reset
         this.isBeingDragged = false;
         this.resetDrawnTileLocation();
       }
-    }
-  }
-
-  randomize() {
-    // choose random tile (but not HOME) and resource
-    let roadIndex = round(random(-0.49, tileCount-2+0.49));
-    let roadResource = round(random(-0.49, resourceCount-1+0.49));
-    let resourceCorner = random([0,1,2,3]);
-    // let roadResource = random([0,1,2,3]);
-    this.tile_id = roadIndex;
-    this.resource_id = roadResource;
-    this.resource_corner = resourceCorner;
-  }
-}
-
-function drawRandomTile() {
-  // draw a random tile and display it in the control panel
-  if (drawnTile.hidden) {
-    drawnTile.randomize();
-    drawnTile.hidden = false;
-  }
-  for (let col = 0; col < grid_cols; col++) {
-    for (let row = 0; row < grid_rows; row++) {
-        tiles[col][row].isLastPlaced = false;
     }
   }
 }
@@ -718,8 +726,6 @@ function decrementCounter() {
 }
 
 function addHandlers() {
-  $("#draw-tile").click(drawRandomTile);
-  $("#reset-tile").click(undoPlacedTile);
   $('.counter-increment').click(incrementCounter);
   $('.counter-decrement').click(decrementCounter);
 

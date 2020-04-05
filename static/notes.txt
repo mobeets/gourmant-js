@@ -2,7 +2,6 @@
 MINOR TODOS
 ---------------------
 
-- substitute "Draw tile" button with an image of a deck inside the canvas where the drawn tile goes
 - make the '-' button a little bigger, and prevent text highlighting on those buttons
 
 ---------------------
