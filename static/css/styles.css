@@ -64,10 +64,6 @@ input[type=range] {
     color: white;
 }
 
-.btn-vp {
-    background-color: black;
-}
-
 .slider-container {
     width: 1em;
 }
@@ -85,7 +81,7 @@ input[type=range] {
     -webkit-border-radius: 20;
     -moz-border-radius: 20;
     border-radius: 20px;
-    width: 30em;
+    width: 34em;
     margin-bottom: 0.5em;
 }
 .player-1-controls {
@@ -104,8 +100,18 @@ input[type=range] {
     color: black;
 }
 .btn-vp {
+    background-color: black;
     border: 0.2em solid;
     border-color: black;
+}
+.btn-portal {
+    color: black;
+    border: 0.2em solid;
+    border-color: black;
+}
+.portal {
+    cursor: pointer;
+    margin-right: 0.1em;
 }
 
 .btn-player {
@@ -120,4 +126,14 @@ input[type=range] {
     border-right: 5px solid transparent;
     border-bottom: 8px solid black;
     padding-bottom: -2em;
+}
+
+.no-select {
+  -webkit-touch-callout: none; /* iOS Safari */
+    -webkit-user-select: none; /* Safari */
+     -khtml-user-select: none; /* Konqueror HTML */
+       -moz-user-select: none; /* Old versions of Firefox */
+        -ms-user-select: none; /* Internet Explorer/Edge */
+            user-select: none; /* Non-prefixed version, currently
+                                  supported by Chrome, Opera and Firefox */
 }

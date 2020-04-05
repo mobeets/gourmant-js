@@ -174,6 +174,39 @@ class Player {
       this.resources[i] = 0;
     }
     this.vp = 0;
+    this.portals = [-1, -1];
+  }
+
+  placePortal(portal_id) {
+    // already placed this portal
+    if (this.portals[portal_id] != -1) {
+      return;
+    }
+
+    // no portals on HOME
+    if (this.token.col === HOME_TILE_COL && this.token.row == HOME_TILE_ROW) {
+      return;
+    }
+
+    // no portals on empty tiles
+    if (tiles[this.token.col][this.token.row].tile_id === -1) {
+      return;
+    }
+
+    // no portals if there's already one here
+    let alreadyOneHere = false;
+    for (var i = 0; i < tiles[this.token.col][this.token.row].portalsOnToken.length; i++) {
+      if (tiles[this.token.col][this.token.row].portalsOnToken[i] === this.id) {
+        alreadyOneHere = true;
+      }
+    }
+    if (alreadyOneHere) {
+      return;
+    }
+
+    // place portal
+    tiles[this.token.col][this.token.row].portalsOnToken.push(this.id);
+    this.portals[portal_id] = tiles[this.token.col][this.token.row];
   }
 }
 
@@ -275,6 +308,7 @@ class Tile {
     this.isOnBoard = isOnBoard;
     this.isLastPlaced = false;
     this.playerIdsOnToken = [];
+    this.portalsOnToken = [];
     if (isOnBoard) {
       this.hidden = false;
       this.isDrawnTile = false;
@@ -382,6 +416,14 @@ class Tile {
       } else {
         circle(x+resourceDiameter, y+row_height-resourceDiameter, resourceDiameter);
       }
+    }
+
+    // draw portals
+    for (var i = 0; i < this.portalsOnToken.length; i++) {
+      fill(players[this.portalsOnToken[i]].token.color);
+      let rad = 5;
+      stroke(255);
+      triangle(x+col_width/2 - rad, y+row_height/2 + rad, x+col_width/2 + rad, y+row_height/2 + rad, x+col_width/2, y+row_height/2 - rad/1.414);
     }
 
     // highlight tile if it was last placed or being dragged
@@ -658,10 +700,24 @@ function drawGridLines() {
 }
 
 function updateScores() {
+  // updates values in player control panel
   for (var i = 0; i < players.length; i++) {
+
+    // update resource counts
     for (var j = 0; j < players[i].resources.length; j++) {
       $('.player-' + (i+1).toString() + '.resource-' + (j+1).toString()).html(players[i].resources[j]);
     }
+
+    // update portal count
+    for (var j = 0; j < players[i].portals.length; j++) {
+      if (players[i].portals[j] == -1) {
+        $('.player-' + (i+1).toString() + '.portal-' + (j+1).toString()).css('color', players[i].color);
+      } else {
+        $('.player-' + (i+1).toString() + '.portal-' + (j+1).toString()).css('color', 'lightgray');
+      }
+    }
+
+    // update VPs
     $('.player-' + (i+1).toString() + '.vp-1').html(players[i].vp);
   }
 }
@@ -699,12 +755,19 @@ function findCounter(elem) {
   if ($(elem).siblings('.vp-1').length > 0) {
     cVpId = 1;
   }
-  return [cPlayerId, cResourceId, cVpId];
+
+  let cPortalId = -1;
+  if ($(elem).siblings('.portal-2').length > 0) {
+    cPortalId = 0;
+  } else if ($(elem).siblings('.portal-1').length > 0) {
+    cPortalId = 1;
+  }
+
+  return [cPlayerId, cResourceId, cVpId, cPortalId];
 }
 
 function incrementCounter() {
   let elems = findCounter(this);
-  console.log(elems);
   if (elems[0] > -1 && elems[1] > -1) {
     players[elems[0]].resources[elems[1]]++;
   } else if (elems[0] > -1 && elems[2] > -1) {
@@ -725,9 +788,17 @@ function decrementCounter() {
   }
 }
 
+function placePortal() {
+  let elems = findCounter(this);
+  if (elems[0] > -1 && elems[3] > -1) {
+    players[elems[0]].placePortal(elems[3]);
+  }
+}
+
 function addHandlers() {
   $('.counter-increment').click(incrementCounter);
   $('.counter-decrement').click(decrementCounter);
+  $('.portal').click(placePortal);
 
   // style colors of resource counters
   for (var i = 0; i < resourceColors.length; i++) {

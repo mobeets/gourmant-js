@@ -2,7 +2,7 @@
 MINOR TODOS
 ---------------------
 
-- make the '-' button a little bigger, and prevent text highlighting on those buttons
+- make portals not transparent
 
 ---------------------
 DESIRED INTERACTIONS
@@ -56,16 +56,16 @@ STAGES: FINISHED
 10. allow moving both player tokens
 	- this will require letting the HOME tiler have multiple player ids
 
----------------------
-STAGES: NEXT
----------------------
-
 11. add portals
 	- each player's controls have two portals (triangles, as text)
 	- when you click one:
 		- it places a portal icon on wherever that player's token currently is
 			- if it's on HOME, then this doesn't work
 		- it dulls out the portal icon in the controls
+
+---------------------
+STAGES: NEXT
+---------------------
 
 12. consider implementing 'buying' goal cards
 	- currently, you can 'buy' by highlighting, but then it will never be replaced; should i change this to do the below?
