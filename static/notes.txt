@@ -66,14 +66,14 @@ STAGES: FINISHED
 			- if it's on HOME, then this doesn't work
 		- it dulls out the portal icon in the controls
 
----------------------
-STAGES: NEXT
----------------------
-
 12. generate an actual deck of tiles (rather than infinites of each type)
 	- https://gomakethings.com/how-to-shuffle-an-array-with-vanilla-js/
 	- there are 40 (4*10) tiles, so just make an array of that length (or, say, two of each), shuffle it, and then use that index to draw the next card
 	- print the number of tiles remaining on the deck back
+
+---------------------
+STAGES: NEXT
+---------------------
 
 13. implement direct buying
 	- to prepare:

@@ -100,7 +100,7 @@ class GoalCard {
     } else {
       this.player_id++;
     }
-    if (this.player_id === nPlayers) {
+    if (this.player_id === nPlayers+1) {
       this.player_id = -1;
     }
   }
@@ -159,7 +159,11 @@ class GoalCard {
     // mark with player token
     if (this.player_id > -1) {
       noStroke();
-      fill(playerTokens[this.player_id].color);
+      if (this.player_id < playerTokens.length) {
+        fill(playerTokens[this.player_id].color);
+      } else { // grayed out
+        fill(128);
+      }
       rect(this.x, this.y, col_width, row_height);
     }
   }
@@ -258,34 +262,78 @@ class Deck {
   constructor(){
     this.x = 0.2*col_width;
     this.y = (grid_rows * row_height) + row_height/2;
+    this.tileIndices = this.constructDeck();
+    this.tileIndex = 0;
+    this.isEmpty = false;
   }
 
   render() {
-    image(tile_back_img, this.x, this.y, col_width, row_height);
+    if (!this.isEmpty) {
+      image(tile_back_img, this.x, this.y, col_width, row_height);
+      textAlign(CENTER, CENTER);
+      noStroke();
+      fill(0);
+      text(this.tileIndices.length-this.tileIndex, this.x + col_width/2, this.y + row_height/2);
+    }
   }
 
   click() {
-    if (drawnTile.hidden) {
+    if (drawnTile.hidden) {      
       this.drawRandomTile();
     }
   }
 
-  randomize(card) {
-    // choose random tile (but not HOME) and resource
-    let roadIndex = round(random(-0.49, tileCount-2+0.49));
-    let roadResource = round(random(-0.49, resourceCount-1+0.49));
-    let resourceCorner = random([0,1,2,3]);
+  shuffle(array) {
+    // source: https://gomakethings.com/how-to-shuffle-an-array-with-vanilla-js/
+    var currentIndex = array.length;
+    var temporaryValue, randomIndex;
 
-    card.tile_id = roadIndex;
-    card.resource_id = roadResource;
-    card.resource_corner = resourceCorner;
+    // While there remain elements to shuffle...
+    while (0 !== currentIndex) {
+      // Pick a remaining element...
+      randomIndex = Math.floor(Math.random() * currentIndex);
+      currentIndex -= 1;
+
+      // And swap it with the current element.
+      temporaryValue = array[currentIndex];
+      array[currentIndex] = array[randomIndex];
+      array[randomIndex] = temporaryValue;
+    }
+    return array;
+  }
+
+  constructDeck() {
+    let tileIndices = [];
+    for (var i = 0; i < tileCount-1; i++) {
+      for (var j = 0; j < resourceCount; j++) {
+        for (var k = 0; k < 2; k++) { // repeats
+          tileIndices.push([i,j,k]);
+        }
+      }
+    }
+    this.shuffle(tileIndices);
+    return tileIndices;
+  }
+
+  getNextCard(card) {
+    if (this.tileIndex >= this.tileIndices.length) {
+      this.isEmpty = true;
+      return;
+    }
+    card.tile_id = this.tileIndices[this.tileIndex][0];
+    card.resource_id = this.tileIndices[this.tileIndex][1];
+    card.resource_corner = this.tileIndices[this.tileIndex][2];
   }
 
   drawRandomTile() {
     // draw a random tile and display it in the control panel
-    if (drawnTile.hidden) {
-      this.randomize(drawnTile);
+    if (drawnTile.hidden) {      
+      this.getNextCard(drawnTile);
       drawnTile.hidden = false;
+      this.tileIndex++;
+      if (this.tileIndex >= this.tileIndices.length) {
+        this.isEmpty = true;
+      }
     }
     // make sure other tiles are marked as fixed
     for (let col = 0; col < grid_cols; col++) {
