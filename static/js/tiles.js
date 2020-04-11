@@ -6,8 +6,17 @@ let deck;
 let road_sprites_img;
 let tile_back_img;
 
-let grid_cols = 18;
-let grid_rows = 8;
+let grid_cols = 32;
+let grid_rows = 14;
+let HOME_TILE_COL = 13;
+let HOME_TILE_ROW = 6;
+
+// compact
+// let grid_cols = 18;
+// let grid_rows = 8;
+// let HOME_TILE_COL = 9;
+// let HOME_TILE_ROW = 3;
+
 let row_height = 32;
 let col_width = 32;
 let resourceDiameter; // size of resource icon
@@ -18,8 +27,6 @@ let goalCards;
 let players;
 let nCardsPerTier = 4;
 let nPlayers = 2;
-let HOME_TILE_COL = 9;
-let HOME_TILE_ROW = 3;
 
 // sprite tile info
 let sprite_size = 32;
@@ -28,8 +35,8 @@ let tileCount = 11; // total number of tiles
 let baseTileIndices = [0, 4, 8];
 let baseTileCounts = [4, 4, 2]; // number of each type
 
-let resourceCount = 4;
-let resourceColors = ['#f0340e', '#fcba03', '#272adb', '#a8329d', '#18b52f'];
+let resourceCount = 5;
+let resourceColors = ['#f0340e', '#fcba03', '#18b52f', '#272adb', '#a8329d'];
 
 let controlPanelHeight = 2*row_height;
 var canvas;
@@ -850,8 +857,8 @@ function addHandlers() {
 
   // style colors of resource counters
   for (var i = 0; i < resourceColors.length; i++) {
-    $('.resource-' + i.toString()).parent().parent().css('border-color', resourceColors[i]);
-    $('.resource-' + i.toString()).css('color', resourceColors[i]);
+    $('.resource-' + (i+1).toString()).parent().parent().css('border-color', resourceColors[i]);
+    $('.resource-' + (i+1).toString()).css('color', resourceColors[i]);
   }
 }
 
