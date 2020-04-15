@@ -61,7 +61,7 @@ input[type=range] {
     text-align: center;
     white-space: nowrap;
     vertical-align: middle;
-    color: white;
+    color: white;    
 }
 
 .slider-container {
@@ -78,10 +78,11 @@ input[type=range] {
 }
 
 .player-controls {
+    font-family: 'Courier', monospace;
     -webkit-border-radius: 20;
     -moz-border-radius: 20;
     border-radius: 20px;
-    width: 39em;
+    width: 37em;
     margin-bottom: 0.5em;
 }
 .player-1-controls {
@@ -115,6 +116,7 @@ input[type=range] {
 }
 
 .btn-player {
+    font-family: 'Raleway', sans-serif;
     width: 5em;
     color: black;
 }

@@ -8,8 +8,8 @@ let tile_back_img;
 
 let grid_cols = 32;
 let grid_rows = 14;
-let HOME_TILE_COL = 13;
-let HOME_TILE_ROW = 6;
+let HOME_TILE_COL = 16;
+let HOME_TILE_ROW = 7;
 
 // compact
 // let grid_cols = 18;
@@ -25,18 +25,20 @@ let tiles;
 let playerTokens;
 let goalCards;
 let players;
-let nCardsPerTier = 4;
+let nCardsPerTier = 5;
 let nPlayers = 2;
 
 // sprite tile info
 let sprite_size = 32;
 let sprites_per_dim = 4; // assumes same in rows and cols
 let tileCount = 11; // total number of tiles
+let homeTileIndex = 10;
 let baseTileIndices = [0, 4, 8];
 let baseTileCounts = [4, 4, 2]; // number of each type
 
-let resourceCount = 5;
-let resourceColors = ['#f0340e', '#fcba03', '#18b52f', '#272adb', '#a8329d'];
+// let resourceColors = ['#f72020', '#fcba03', '#18b52f', '#272adb', '#a8329d'];
+let resourceColors = ['#f72020', '#fcba03', '#00adef', '#a53c96'];
+let backgroundColor = '#8cc63e';
 
 let controlPanelHeight = 2*row_height;
 var canvas;
@@ -51,7 +53,7 @@ function windowResized() {
 }
 
 function preload() {
-    road_sprites_img = loadImage("/static/images/tiles.png");
+    road_sprites_img = loadImage("/static/images/tiles2.png");
     tile_back_img = loadImage("/static/images/tile_back.png");
 }
 
@@ -85,7 +87,12 @@ class GoalCard {
       this.vps = mx+1;
       this.sell = 0;
     } else {
-      this.vps = 15;
+      if (this.total_count === mx) {
+        // double of same color is worth more
+        this.vps = 6;
+      } else {
+        this.vps = 3;
+      }
       this.sell = 0;
     }
 
@@ -311,13 +318,20 @@ class Deck {
 
   constructDeck() {
     let tileIndices = [];
+    // generate all road tiles
     for (var i = 0; i < tileCount-1; i++) {
-      for (var j = 0; j < resourceCount; j++) {
+      for (var j = 0; j < resourceColors.length; j++) {
         for (var k = 0; k < 2; k++) { // repeats
           tileIndices.push([i,j,k]);
         }
       }
     }
+    // now add conversion tiles
+    tileIndices.push([tileCount,-1,-1]);
+    tileIndices.push([tileCount+1,-1,-1]);
+    tileIndices.push([tileCount+2,-1,-1]);
+    tileIndices.push([tileCount+3,-1,-1]);
+
     this.shuffle(tileIndices);
     return tileIndices;
   }
@@ -605,6 +619,7 @@ function initializeTokens() {
     if (i === 0) {
       clr = color(255, 0, 0, 100);
     } else if (i === 1) {
+      // clr = color(235, 168, 52, 150);
       clr = color(0, 0, 255, 100);
     } else {
       clr = color(180, 180, 180, 100);
@@ -626,7 +641,7 @@ function initializeTiles() {
   }
 
   // set HOME tile
-  tiles[HOME_TILE_COL][HOME_TILE_ROW].tile_id = tileCount-1;
+  tiles[HOME_TILE_COL][HOME_TILE_ROW].tile_id = homeTileIndex;
 
   // set deck
   deck = new Deck();
@@ -778,7 +793,7 @@ function updateScores() {
 }
 
 function draw() {
-  background('#8cc63e');
+  background(backgroundColor);
   
   // draw control panel
   fill(255);
