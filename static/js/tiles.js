@@ -27,6 +27,7 @@ let goalCards;
 let players;
 let nCardsPerTier = 5;
 let nPlayers = 2;
+let nTilesVisible = 4;
 
 // sprite tile info
 let sprite_size = 32;
@@ -46,7 +47,6 @@ var canvasWidth = grid_cols*col_width;
 var canvasHeight = grid_rows*row_height + controlPanelHeight;
 
 let button_draw_tile;
-let drawnTile;
 
 function windowResized() {
   resizeCanvas(canvasWidth, canvasHeight);
@@ -103,7 +103,7 @@ class GoalCard {
   }
 
   reveal(loc) {
-    this.x = 0.1*loc*col_width + (loc+2.5)*col_width + col_width/2;
+    this.x = 0.1*loc*col_width + (loc+6.5)*col_width + col_width/2;
     this.y = (grid_rows * row_height) + row_height/2;
     this.visible = true;
   }
@@ -292,8 +292,10 @@ class Deck {
   }
 
   click() {
-    if (drawnTile.hidden) {      
-      this.drawRandomTile();
+    for (var i = 0; i < drawnTiles.flop.length; i++) {
+      if (drawnTiles.flop[i].hidden) {
+        this.drawRandomTile(drawnTiles.flop[i]);
+      }
     }
   }
 
@@ -346,7 +348,7 @@ class Deck {
     card.resource_corner = this.tileIndices[this.tileIndex][2];
   }
 
-  drawRandomTile() {
+  drawRandomTile(drawnTile) {
     // draw a random tile and display it in the control panel
     if (drawnTile.hidden) {      
       this.getNextCard(drawnTile);
@@ -359,7 +361,7 @@ class Deck {
     // make sure other tiles are marked as fixed
     for (let col = 0; col < grid_cols; col++) {
       for (let row = 0; row < grid_rows; row++) {
-          tiles[col][row].isLastPlaced = false;
+        tiles[col][row].isLastPlaced = false;
       }
     }
   }
@@ -368,7 +370,7 @@ class Deck {
 
 class Tile {
 
-  constructor(col, row, isOnBoard){
+  constructor(col, row, isOnBoard, drawnTileIndex){
     this.tile_id = -1;
     this.resource_id = -1;
     this.resource_corner = -1;
@@ -378,6 +380,7 @@ class Tile {
     this.isLastPlaced = false;
     this.playerIdsOnToken = [];
     this.portalsOnToken = [];
+    this.drawnTileIndex = drawnTileIndex;
     if (isOnBoard) {
       this.hidden = false;
       this.isDrawnTile = false;
@@ -395,7 +398,7 @@ class Tile {
   }
   
   resetDrawnTileLocation() {
-    this.x = 1.3*col_width;
+    this.x = (0.2 + 1.1*(this.drawnTileIndex+1))*col_width;
     this.y = (grid_rows * row_height) + row_height/2;
   }
 
@@ -507,26 +510,18 @@ class Tile {
 
   click() {
     if (this.isOnBoard && this.tile_id === -1) { // empty tile clicked
-      if (drawnTile.isBeingDragged) {
+      if (drawnTiles.tileIsBeingDragged()) {
         // copy drawn tile, then hide drawn tile
-        this.tile_id = drawnTile.tile_id;
-        this.resource_id = drawnTile.resource_id;
-        this.resource_corner = drawnTile.resource_corner;
-
-        // mark tile so we know we can still rotate it
-        this.isLastPlaced = true;
-
-        // reset drawn tile to be invisible
-        drawnTile.resetDrawnTile();
+        drawnTiles.copyDraggedTile(this);
       }
     } else if (this.isOnBoard) { // not empty, so rotate
-      if (!drawnTile.isBeingDragged && this.isLastPlaced) {
+      if (!drawnTiles.tileIsBeingDragged() && this.isLastPlaced) {
         // can only rotate when not dragging drawn tile
         this.rotate();
       }
     } else if (this.isDrawnTile) {
       if (this.hidden) {
-        undoPlacedTile();
+        drawnTiles.undoPlacedTile();
       } else if (!this.hidden && !this.isBeingDragged) {
         this.isBeingDragged = true;
       } else { // clicked in white area, so reset
@@ -537,27 +532,84 @@ class Tile {
   }
 }
 
-function undoPlacedTile() {
-  // find the last drawn tile and put it back
-  if (!drawnTile.hidden) {
-    // cannot do this if a new tile has been drawn
-    return;
-  }
-  for (let col = 0; col < grid_cols; col++) {
-    for (let row = 0; row < grid_rows; row++) {
-        if (tiles[col][row].isLastPlaced) {
-          drawnTile.tile_id = tiles[col][row].tile_id;
-          drawnTile.resource_id = tiles[col][row].resource_id;
-          drawnTile.resource_corner = tiles[col][row].resource_corner;
-          drawnTile.hidden = false;
-          tiles[col][row].tile_id = -1;
-          tiles[col][row].resource_id = -1;
-          tiles[col][row].resource_corner = -1;
-          tiles[col][row].isLastPlaced = false;
-          return;
-        }
+class DrawnTiles {
+  constructor(nTilesMax){
+    this.flop = [];
+    for (var i = 0; i < nTilesMax; i++) {
+      this.flop[i] = new Tile(0, 0, false, i);
     }
   }
+
+  tileIsBeingDragged() {
+    for (var i = 0; i < this.flop.length; i++) {
+      if (this.flop[i].isBeingDragged) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  copyDraggedTile(tile) {
+    // first make sure other tiles are marked as fixed
+    for (let col = 0; col < grid_cols; col++) {
+      for (let row = 0; row < grid_rows; row++) {
+        tiles[col][row].isLastPlaced = false;
+      }
+    }
+
+    // now copy dragged tile to current tile
+    for (var i = 0; i < this.flop.length; i++) {
+      if (this.flop[i].isBeingDragged) {
+        // copy drawn tile, then hide drawn tile
+        tile.tile_id = this.flop[i].tile_id;
+        tile.resource_id = this.flop[i].resource_id;
+        tile.resource_corner = this.flop[i].resource_corner;
+
+        // mark tile so we know we can still rotate it
+        tile.isLastPlaced = true;
+
+        // reset drawn tile to be invisible
+        this.flop[i].resetDrawnTile();
+        return tile;
+      }
+    }
+  }
+
+  render() {
+    for (var i = 0; i < this.flop.length; i++) {
+      if (this.flop[i].isBeingDragged) {
+        this.flop[i].x = mouseX - col_width/2;
+        this.flop[i].y = mouseY - row_height/2;
+      }
+      this.flop[i].render();
+    }
+  }
+
+  undoPlacedTile() {
+    for (var i = 0; i < this.flop.length; i++) {
+      // find the last drawn tile and put it back
+      if (!this.flop[i].hidden) {
+        // cannot do this if a new tile has been drawn
+        continue;
+      }
+      for (let col = 0; col < grid_cols; col++) {
+        for (let row = 0; row < grid_rows; row++) {
+          if (tiles[col][row].isLastPlaced) {
+            this.flop[i].tile_id = tiles[col][row].tile_id;
+            this.flop[i].resource_id = tiles[col][row].resource_id;
+            this.flop[i].resource_corner = tiles[col][row].resource_corner;
+            this.flop[i].hidden = false;
+            tiles[col][row].tile_id = -1;
+            tiles[col][row].resource_id = -1;
+            tiles[col][row].resource_corner = -1;
+            tiles[col][row].isLastPlaced = false;
+            return;
+          }
+        }
+      }
+    }
+  }
+
 }
 
 function mouseClicked() {
@@ -587,7 +639,7 @@ function mouseClicked() {
 
   // check if a tile was clicked
   if (col >= 0 && row >= 0 && col < tiles.length && row < tiles[col].length) {
-    if (drawnTile.isBeingDragged) {
+    if (drawnTiles.tileIsBeingDragged()) {
       tiles[col][row].click();
     } else if (!tiles[col][row].isEmpty()) {
       playerTokens[tiles[col][row].playerIdsOnToken[0]].click();
@@ -604,9 +656,11 @@ function mouseClicked() {
   }
 
   // check if drawn tile was clicked
-  if (mouseX >= drawnTile.x && mouseX < drawnTile.x+col_width && mouseY >= drawnTile.y && mouseY < drawnTile.y+row_height) {
-    drawnTile.click();
-    return;
+  for (var i = 0; i < drawnTiles.flop.length; i++) {
+    if (mouseX >= drawnTiles.flop[i].x && mouseX < drawnTiles.flop[i].x+col_width && mouseY >= drawnTiles.flop[i].y && mouseY < drawnTiles.flop[i].y+row_height) {
+      drawnTiles.flop[i].click();
+      return;
+    }
   }
 }
 
@@ -636,7 +690,7 @@ function initializeTiles() {
   for (let col = 0; col < grid_cols; col++){
     tiles[col] = [];
     for (let row = 0; row < grid_rows; row++){
-      tiles[col][row] = new Tile(col, row, true);
+      tiles[col][row] = new Tile(col, row, true, -1);
     }
   }
 
@@ -647,8 +701,7 @@ function initializeTiles() {
   deck = new Deck();
 
   // set DRAWN tile
-  drawnTile = new Tile(0, 0, false);
-
+  drawnTiles = new DrawnTiles(nTilesVisible);
 }
 
 function initializeGoalCards() {
@@ -726,19 +779,17 @@ function setup() {
 }
 
 function renderTiles() {
-  // loop over each cell
+  // loop over each cell and render tiles
   for (let col = 0; col < grid_cols; col++) {
     for (let row = 0; row < grid_rows; row++) {
         tiles[col][row].render();
     }
   }
-  // if drawn tile is being dragged, draw it (centered) under cursor
-  if (drawnTile.isBeingDragged) {
-    drawnTile.x = mouseX - col_width/2;
-    drawnTile.y = mouseY - row_height/2;
-  }
-  drawnTile.render();
 
+  // render drawn tiles
+  drawnTiles.render();
+
+  // render deck
   deck.render();
 }
 
