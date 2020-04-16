@@ -446,13 +446,6 @@ class Tile {
   render() {
     // tile is empty
     if (this.tile_id === -1) {
-      if (!this.isOnBoard && this.hidden) {
-        noFill();
-        strokeWeight(1);
-        rect(this.x, this.y, col_width, row_height);
-        textAlign(CENTER, CENTER);
-        text('Undo', this.x + col_width/2, this.y + row_height/2);
-      }
       return;
     }
 
@@ -576,10 +569,31 @@ class DrawnTiles {
   }
 
   render() {
+    // check if any tiles are marked as last placed
+    let writeUndo = false;
+    for (let col = 0; col < grid_cols; col++) {
+      for (let row = 0; row < grid_rows; row++) {
+        if (tiles[col][row].isLastPlaced) {
+          writeUndo = true;
+        }
+      }
+    }
+
     for (var i = 0; i < this.flop.length; i++) {
       if (this.flop[i].isBeingDragged) {
         this.flop[i].x = mouseX - col_width/2;
         this.flop[i].y = mouseY - row_height/2;
+      }
+      if (writeUndo && this.flop[i].hidden) { // draw undo text
+        let x = (0.2 + 1.1*(i+1))*col_width;
+        let y = (grid_rows * row_height) + row_height/2;
+        noFill();
+        stroke(150);
+        strokeWeight(1);
+        rect(x, y, col_width, row_height);
+        textAlign(CENTER, CENTER);
+        text('Undo', x + col_width/2, y + row_height/2);
+        writeUndo = false;
       }
       this.flop[i].render();
     }
