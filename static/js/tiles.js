@@ -31,11 +31,22 @@ let nTilesVisible = 4;
 
 // sprite tile info
 let sprite_size = 32;
-let sprites_per_dim = 4; // assumes same in rows and cols
+let sprites_per_row = 4;
+let sprites_per_col = 5;
 let tileCount = 11; // total number of tiles
 let homeTileIndex = 10;
 let baseTileIndices = [0, 4, 8];
-let baseTileCounts = [4, 4, 2]; // number of each type
+
+// tile counts
+let baseTileCounts = [4, 4, 2]; // number of each road type
+let nRepeatsRoadTiles = 1; // # of reps of road tiles
+let nConversionTiles = 4; // # of conversion tiles (should be same as resourceColors.length
+let nRepeatsConversionTiles = 2; // # of reps of conversion tiles
+let nPortalTiles = 2;
+let nRepeatsRobberTiles = 2;
+let nRepeatsPortalTiles = 2;
+let nRepeatsPlusOneTiles = 4;
+let nRepeatsBlankTiles = 0;
 
 // let resourceColors = ['#f72020', '#fcba03', '#18b52f', '#272adb', '#a8329d'];
 let resourceColors = ['#f72020', '#fcba03', '#00adef', '#a53c96'];
@@ -53,7 +64,7 @@ function windowResized() {
 }
 
 function preload() {
-    road_sprites_img = loadImage("/static/images/tiles2.png");
+    road_sprites_img = loadImage("/static/images/tiles3.png");
     tile_back_img = loadImage("/static/images/tile_back.png");
 }
 
@@ -320,19 +331,49 @@ class Deck {
 
   constructDeck() {
     let tileIndices = [];
+
     // generate all road tiles
     for (var i = 0; i < tileCount-1; i++) {
       for (var j = 0; j < resourceColors.length; j++) {
-        for (var k = 0; k < 2; k++) { // repeats
-          tileIndices.push([i,j,k]);
+        for (var k = 0; k < nRepeatsRoadTiles; k++) { // repeats
+          tileIndices.push([i,j,k,'road']);
         }
       }
     }
+    let cOffset = tileCount;
+
     // now add conversion tiles
-    tileIndices.push([tileCount,-1,-1]);
-    tileIndices.push([tileCount+1,-1,-1]);
-    tileIndices.push([tileCount+2,-1,-1]);
-    tileIndices.push([tileCount+3,-1,-1]);
+    for (var i = 0; i < nConversionTiles; i++) {
+      for (var j = 0; j < nRepeatsConversionTiles; j++) {
+        tileIndices.push([cOffset+i,-1,-1,'conversion']);
+      }
+    }
+    cOffset += nConversionTiles;
+
+    // add robbers
+    for (var j = 0; j < nRepeatsRobberTiles; j++) {
+      tileIndices.push([cOffset,-1,-1,'robber']);
+    }
+    cOffset += 1;
+
+    // add public and private portals
+    for (var i = 0; i < nPortalTiles; i++) {
+      for (var j = 0; j < nRepeatsPortalTiles; j++) {
+        tileIndices.push([cOffset+i,-1,-1,'portal']);
+      }
+    }
+    cOffset += nPortalTiles;
+
+    // add +1's
+    for (var j = 0; j < nRepeatsPlusOneTiles; j++) {
+      tileIndices.push([cOffset,-1,-1,'plus-one']);
+    }
+    cOffset += 1;
+
+    // add blanks (todo: implement)
+    for (var j = 0; j < nRepeatsBlankTiles; j++) {
+      tileIndices.push([cOffset,-1,-1,'blank']);
+    }
 
     this.shuffle(tileIndices);
     return tileIndices;
@@ -462,8 +503,8 @@ class Tile {
 
     // the tiles are packed into a single 4 x 4 atlas
     // we need calculate what part of the image to draw
-    let sx = this.tile_id % sprites_per_dim * sprite_size;
-    let sy = floor(this.tile_id / sprites_per_dim) * sprite_size;
+    let sx = this.tile_id % sprites_per_row * sprite_size;
+    let sy = floor(this.tile_id / sprites_per_row) * sprite_size;
 
     // draw it
     image(road_sprites_img, x, y, col_width, row_height, sx, sy, sprite_size, sprite_size);
