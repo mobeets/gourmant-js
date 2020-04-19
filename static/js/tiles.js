@@ -35,15 +35,18 @@ let sprites_per_row = 4;
 let sprites_per_col = 5;
 let tileCount = 11; // total number of tiles
 let homeTileIndex = 10;
-let baseTileIndices = [0, 4, 8];
+
+// for rotating road tiles
+let baseTileIndices = [0, 4, 8, 10];
+// let baseTileCounts = [4, 4, 2]; // number of each road type
 
 // tile counts
-let baseTileCounts = [4, 4, 2]; // number of each road type
 let nRepeatsRoadTiles = 1; // # of reps of road tiles
 let nConversionTiles = 4; // # of conversion tiles (should be same as resourceColors.length
 let nRepeatsConversionTiles = 2; // # of reps of conversion tiles
-let nPortalTiles = 2;
+let nRepeatsStraightaways = 2;
 let nRepeatsRobberTiles = 2;
+let nPortalTiles = 2;
 let nRepeatsPortalTiles = 2;
 let nRepeatsPlusOneTiles = 4;
 let nRepeatsBlankTiles = 0;
@@ -56,7 +59,6 @@ let controlPanelHeight = 2*row_height;
 var canvas;
 var canvasWidth = grid_cols*col_width;
 var canvasHeight = grid_rows*row_height + controlPanelHeight;
-
 let button_draw_tile;
 
 function windowResized() {
@@ -266,7 +268,7 @@ class Token {
 
   click(col, row) {
     if (this.isBeingDragged) {
-      if (col > 0 && row > 0) {
+      if (col >= 0 && row >= 0) {
         // can only place on non-empty tile
         if (tiles[col][row].tile_id > -1) {
           tiles[this.col][this.row].rmPlayerFromToken(this.id);
@@ -335,7 +337,13 @@ class Deck {
     // generate all road tiles
     for (var i = 0; i < tileCount-1; i++) {
       for (var j = 0; j < resourceColors.length; j++) {
-        for (var k = 0; k < nRepeatsRoadTiles; k++) { // repeats
+        let nReps;
+        if (i <= tileCount-1-2) {
+          nReps = nRepeatsRoadTiles;
+        } else {
+          nReps = nRepeatsStraightaways;
+        }
+        for (var k = 0; k < nReps; k++) { // repeats
           tileIndices.push([i,j,k,'road']);
         }
       }
@@ -356,6 +364,12 @@ class Deck {
     }
     cOffset += 1;
 
+    // add +1's
+    for (var j = 0; j < nRepeatsPlusOneTiles; j++) {
+      tileIndices.push([cOffset,-1,-1,'plus-one']);
+    }
+    cOffset += 1;
+
     // add public and private portals
     for (var i = 0; i < nPortalTiles; i++) {
       for (var j = 0; j < nRepeatsPortalTiles; j++) {
@@ -364,17 +378,12 @@ class Deck {
     }
     cOffset += nPortalTiles;
 
-    // add +1's
-    for (var j = 0; j < nRepeatsPlusOneTiles; j++) {
-      tileIndices.push([cOffset,-1,-1,'plus-one']);
-    }
-    cOffset += 1;
-
     // add blanks (todo: implement)
     for (var j = 0; j < nRepeatsBlankTiles; j++) {
       tileIndices.push([cOffset,-1,-1,'blank']);
     }
 
+    // console.log(tileIndices);
     this.shuffle(tileIndices);
     return tileIndices;
   }
@@ -471,11 +480,11 @@ class Tile {
   }
 
   rotate() {
-    for (let i = 0; i < baseTileIndices.length; i++) {
-      if (i === baseTileIndices.length-1 || this.tile_id < baseTileIndices[i+1]) {
+    for (let i = 0; i < baseTileIndices.length-1; i++) {
+      if (this.tile_id < baseTileIndices[i+1]) {
         // rotate the road tile
         let j = this.tile_id-baseTileIndices[i];
-        this.tile_id = baseTileIndices[i] + ((j+1) % baseTileCounts[i]);
+        this.tile_id = baseTileIndices[i] + ((j+1) % (baseTileIndices[i+1]-baseTileIndices[i]));
         // rotate the corner the resource is in
         this.resource_corner = (this.resource_corner+1) % 4;
         return;
@@ -537,7 +546,7 @@ class Tile {
       noFill();
       stroke('#5b8226');
       strokeWeight(2);
-      rect(x, y, col_width, row_height);
+      rect(x+1, y+1, col_width-2, row_height-2);
       strokeWeight(1);
     }
   }
@@ -671,6 +680,7 @@ function mouseClicked() {
   // find location of mouse click, relative to tiles
   let col = floor(mouseX / col_width);
   let row = floor(mouseY / row_height);
+  console.log([mouseX, mouseY, col, row]);
 
   // check if player token is currently being moved
   for (let i = 0; i < playerTokens.length; i++) {
