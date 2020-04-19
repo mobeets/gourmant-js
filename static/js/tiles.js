@@ -36,11 +36,8 @@ let sprites_per_col = 5;
 let tileCount = 11; // total number of tiles
 let homeTileIndex = 10;
 
-// for rotating road tiles
-let baseTileIndices = [0, 4, 8, 10];
-// let baseTileCounts = [4, 4, 2]; // number of each road type
-
 // tile counts
+let baseTileIndices = [0, 4, 8, 10]; // for rotating road tiles
 let nRepeatsRoadTiles = 1; // # of reps of road tiles
 let nConversionTiles = 4; // # of conversion tiles (should be same as resourceColors.length
 let nRepeatsConversionTiles = 2; // # of reps of conversion tiles
@@ -214,20 +211,34 @@ class Player {
       return;
     }
 
+    let ccol, crow;
+    for (let col = 0; col < grid_cols; col++) {
+      for (let row = 0; row < grid_rows; row++) {
+        if (tiles[col][row].isLastPlaced) {
+          ccol = col;
+          crow = row;
+        }
+      }
+    }
+
+    // find token that was last placed
+    // then replace instances below of 'this.token.col' and 'this.token.row'
+    // with this tile's col/row
+
     // no portals on HOME
-    if (this.token.col === HOME_TILE_COL && this.token.row == HOME_TILE_ROW) {
+    if (ccol === HOME_TILE_COL && crow == HOME_TILE_ROW) {
       return;
     }
 
     // no portals on empty tiles
-    if (tiles[this.token.col][this.token.row].tile_id === -1) {
+    if (tiles[ccol][crow].tile_id === -1) {
       return;
     }
 
     // no portals if there's already one here
     let alreadyOneHere = false;
-    for (var i = 0; i < tiles[this.token.col][this.token.row].portalsOnToken.length; i++) {
-      if (tiles[this.token.col][this.token.row].portalsOnToken[i] === this.id) {
+    for (var i = 0; i < tiles[ccol][crow].portalsOnToken.length; i++) {
+      if (tiles[ccol][crow].portalsOnToken[i] === this.id) {
         alreadyOneHere = true;
       }
     }
@@ -236,8 +247,8 @@ class Player {
     }
 
     // place portal
-    tiles[this.token.col][this.token.row].portalsOnToken.push(this.id);
-    this.portals[portal_id] = tiles[this.token.col][this.token.row];
+    tiles[ccol][crow].portalsOnToken.push(this.id);
+    this.portals[portal_id] = tiles[ccol][crow];
   }
 }
 
@@ -515,21 +526,23 @@ class Tile {
     let sx = this.tile_id % sprites_per_row * sprite_size;
     let sy = floor(this.tile_id / sprites_per_row) * sprite_size;
 
-    // draw it
+    // draw tile
     image(road_sprites_img, x, y, col_width, row_height, sx, sy, sprite_size, sprite_size);
+
+    // draw resource
     if (this.resource_id > -1) {
-      // textAlign(LEFT, TOP);
-      // text(res,x,y);
       noStroke();
+      let tx = x + col_width/2;
+      let ty = y + row_height/2;
       fill(resourceColors[this.resource_id]);
       if (this.resource_corner === 0) {
-        circle(x+resourceDiameter, y+resourceDiameter, resourceDiameter);
+        circle(tx+resourceDiameter, ty+resourceDiameter, resourceDiameter);
       } else if (this.resource_corner === 1) {
-        circle(x+col_width-resourceDiameter, y+resourceDiameter, resourceDiameter);
+        circle(tx-resourceDiameter, ty+resourceDiameter, resourceDiameter);
       } else if (this.resource_corner === 2) {
-        circle(x+col_width-resourceDiameter, y+row_height-resourceDiameter, resourceDiameter);
+        circle(tx-resourceDiameter, ty-resourceDiameter, resourceDiameter);
       } else {
-        circle(x+resourceDiameter, y+row_height-resourceDiameter, resourceDiameter);
+        circle(tx+resourceDiameter, ty-resourceDiameter, resourceDiameter);
       }
     }
 
