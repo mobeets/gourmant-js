@@ -33,24 +33,25 @@ let nTilesVisible = 4;
 let sprite_size = 32;
 let sprites_per_row = 4;
 let sprites_per_col = 5;
-let tileCount = 11; // total number of tiles
-let homeTileIndex = 10;
+let tileCount = 10; // total number of tiles
+let homeTileIndex = 18;
 
 // tile counts
-let baseTileIndices = [0, 4, 8, 10]; // for rotating road tiles
+let baseTileIndices = [0, 4, 8, 10, 12]; // for rotating road tiles
 let nRepeatsRoadTiles = 1; // # of reps of road tiles
 let nConversionTiles = 4; // # of conversion tiles (should be same as resourceColors.length
 let nRepeatsConversionTiles = 2; // # of reps of conversion tiles
 let nRepeatsStraightaways = 2;
 let nRepeatsRobberTiles = 2;
-let nPortalTiles = 2;
-let nRepeatsPortalTiles = 2;
+let nPortalTiles = 1;
+let nRepeatsPortalTiles = 4;
 let nRepeatsPlusOneTiles = 4;
 let nRepeatsBlankTiles = 0;
 
 // let resourceColors = ['#f72020', '#fcba03', '#18b52f', '#272adb', '#a8329d'];
 let resourceColors = ['#f72020', '#fcba03', '#00adef', '#a53c96'];
-let backgroundColor = '#8cc63e';
+// let backgroundColor = '#8cc63e';
+let backgroundColor = '#a87b4f';
 
 let controlPanelHeight = 2*row_height;
 var canvas;
@@ -63,7 +64,7 @@ function windowResized() {
 }
 
 function preload() {
-    road_sprites_img = loadImage("/static/images/tiles3.png");
+    road_sprites_img = loadImage("/static/images/tiles4.png");
     tile_back_img = loadImage("/static/images/tile_back.png");
 }
 
@@ -346,10 +347,10 @@ class Deck {
     let tileIndices = [];
 
     // generate all road tiles
-    for (var i = 0; i < tileCount-1; i++) {
+    for (var i = 0; i < tileCount; i++) {
       for (var j = 0; j < resourceColors.length; j++) {
         let nReps;
-        if (i <= tileCount-1-2) {
+        if (i <= tileCount-2) {
           nReps = nRepeatsRoadTiles;
         } else {
           nReps = nRepeatsStraightaways;
@@ -360,6 +361,12 @@ class Deck {
       }
     }
     let cOffset = tileCount;
+
+    // add +1's
+    for (var j = 0; j < nRepeatsPlusOneTiles; j++) {
+      tileIndices.push([cOffset,-1,-1,'plus-one']);
+    }
+    cOffset += 1;
 
     // now add conversion tiles
     for (var i = 0; i < nConversionTiles; i++) {
@@ -372,12 +379,6 @@ class Deck {
     // add robbers
     for (var j = 0; j < nRepeatsRobberTiles; j++) {
       tileIndices.push([cOffset,-1,-1,'robber']);
-    }
-    cOffset += 1;
-
-    // add +1's
-    for (var j = 0; j < nRepeatsPlusOneTiles; j++) {
-      tileIndices.push([cOffset,-1,-1,'plus-one']);
     }
     cOffset += 1;
 
@@ -557,7 +558,7 @@ class Tile {
     // highlight tile if it was last placed or being dragged
     if (this.isLastPlaced || this.isBeingDragged) {
       noFill();
-      stroke('#5b8226');
+      stroke(200);
       strokeWeight(2);
       rect(x+1, y+1, col_width-2, row_height-2);
       strokeWeight(1);
