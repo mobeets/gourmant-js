@@ -143,6 +143,7 @@ class GoalCard {
     if (!this.visible) { return; }
 
     // draw card boundary
+    strokeWeight(1);
     stroke(0);
     fill(255);
     rect(this.x, this.y, col_width, row_height);
@@ -201,10 +202,12 @@ class GoalCard {
 
     // mark with player token
     if (this.player_id > -1) {
-      noStroke();
       if (this.player_id < playerTokens.length) {
-        fill(playerTokens[this.player_id].color);
+        noFill();
+        strokeWeight(5);
+        stroke(playerTokens[this.player_id].color);
       } else { // grayed out
+        noStroke();
         fill(128);
       }
       rect(this.x, this.y, col_width, row_height);
