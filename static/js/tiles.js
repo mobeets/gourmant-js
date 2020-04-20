@@ -45,7 +45,7 @@ let nRepeatsStraightaways = 2;
 let nRepeatsRobberTiles = 2;
 let nPortalTiles = 1;
 let nRepeatsPortalTiles = 4;
-let nRepeatsPlusOneTiles = 4;
+let nRepeatsPlusOneTiles = 6;
 let nRepeatsBlankTiles = 0;
 
 // let resourceColors = ['#f72020', '#fcba03', '#18b52f', '#272adb', '#a8329d'];
@@ -76,9 +76,10 @@ class Resource {
 }
 
 class GoalCard {
-  constructor(resource_ids, counts, tier){
+  constructor(resource_ids, counts, tier, isBothBig){
     this.resource_ids = resource_ids;
     this.counts = counts;
+    this.isBothBig = isBothBig; // for tier-3 only
     this.tier = tier;
     this.total_count = 0;
     this.player_id = -1;
@@ -94,15 +95,23 @@ class GoalCard {
     if (this.tier === 1) {
       this.vps = mx-1;
       this.sell = mx+1;
-    } else if (this.tier == 2) {
+    } else if (this.tier === 2) {
       this.vps = mx+1;
       this.sell = 0;
     } else {
       if (this.total_count === mx) {
         // double of same color is worth more
-        this.vps = 6;
+        if (this.isBothBig) {
+          this.vps = 7;
+        } else {
+          this.vps = 6;
+        }
       } else {
-        this.vps = 3;
+        if (this.isBothBig) {
+          this.vps = 4;
+        } else {
+          this.vps = 3;
+        }
       }
       this.sell = 0;
     }
@@ -143,15 +152,20 @@ class GoalCard {
     // different positions depending on total count
     let x_offsets = [];
     let y_offsets = [];
-    let diam;
+    let diam, diam_2;
     if (this.tier === 3) { // two
       x_offsets = [col_width/2, col_width/2];
       y_offsets = [row_height/3, 2*row_height/3];
       diam = 1.5*goalResourceDiameter;
+      if (!this.isBothBig) {
+        diam_2 = 1.0*goalResourceDiameter;
+      } else {
+        diam_2 = diam;
+      }
     } else if (this.total_count === 3) { // three
       x_offsets = [col_width/2 - col_width/5, col_width/2, col_width/2 + col_width/5];
       y_offsets = [row_height/2, row_height/2, row_height/2];
-      diam = goalResourceDiameter;
+      diam = 0.8*goalResourceDiameter;
     } else if (this.total_count === 7) { // seven
       x_offsets = [col_width/2 - col_width/5, col_width/2, col_width/2 + col_width/5, col_width/5, 2*col_width/5, 3*col_width/5, 4*col_width/5];
       y_offsets = [2*row_height/5, 2*row_height/5, 2*row_height/5, 3*row_height/5, 3*row_height/5, 3*row_height/5, 3*row_height/5];
@@ -162,7 +176,11 @@ class GoalCard {
       cc++;
       if (cc > this.counts[cid]) { cc = 0; cid++; }
       fill(resourceColors[this.resource_ids[cid]]);
-      circle(this.x + x_offsets[i], this.y + y_offsets[i], diam);
+      if (this.tier === 3 && i > 0) {
+        circle(this.x + x_offsets[i], this.y + y_offsets[i], diam_2);
+      } else {
+        circle(this.x + x_offsets[i], this.y + y_offsets[i], diam);
+      }
     }
 
     // mark sell value
@@ -366,7 +384,7 @@ class Deck {
     for (var j = 0; j < nRepeatsPlusOneTiles; j++) {
       tileIndices.push([cOffset,-1,-1,'plus-one']);
     }
-    cOffset += 1;
+    cOffset += 2;
 
     // now add conversion tiles
     for (var i = 0; i < nConversionTiles; i++) {
@@ -694,7 +712,7 @@ function mouseClicked() {
   // find location of mouse click, relative to tiles
   let col = floor(mouseX / col_width);
   let row = floor(mouseY / row_height);
-  console.log([mouseX, mouseY, col, row]);
+  // console.log([mouseX, mouseY, col, row]);
 
   // check if player token is currently being moved
   for (let i = 0; i < playerTokens.length; i++) {
@@ -789,45 +807,59 @@ function initializeGoalCards() {
   // generate all goal cards,
   // and keep track of counts in each tier
   let cg = 0;
+
+  // easy tier
   let goalCoardCounts = [0,0,0];
   for (var i = 0; i < resourceColors.length; i++) {
-    goalCards[cg] = new GoalCard([i],[3],1);
+    goalCards[cg] = new GoalCard([i],[3],1,[]);
     cg++;
     goalCoardCounts[0]++;
 
-    goalCards[cg] = new GoalCard([i,(i+1)%resourceColors.length],[2,1],1);
+    goalCards[cg] = new GoalCard([i,(i+1)%resourceColors.length],[2,1],1,[]);
     cg++;
     goalCoardCounts[0]++;
   }
+
+  // medium tier
   for (var i = 0; i < resourceColors.length; i++) {
-    goalCards[cg] = new GoalCard([i],[7],2);
+    goalCards[cg] = new GoalCard([i],[7],2,[]);
     cg++;
     goalCoardCounts[1]++;
 
-    goalCards[cg] = new GoalCard([i,(i+2)%resourceColors.length],[5,2],2);
+    goalCards[cg] = new GoalCard([i,(i+2)%resourceColors.length],[5,2],2,[]);
     cg++;
     goalCoardCounts[1]++;
 
-    goalCards[cg] = new GoalCard([i,(i+3)%resourceColors.length],[4,3],2);
+    goalCards[cg] = new GoalCard([i,(i+3)%resourceColors.length],[4,3],2,[]);
     cg++;
     goalCoardCounts[1]++;
   }
+
+  // bonus cards
   for (var i = 0; i < resourceColors.length; i++) {
-    goalCards[cg] = new GoalCard([i],[2],3);
+
+    // double of same color, both big
+    goalCards[cg] = new GoalCard([i],[2],3,true);
     cg++;
     goalCoardCounts[2]++;
 
-    goalCards[cg] = new GoalCard([i,(i+1)%resourceColors.length],[1,1],3);
+    // double of same color, one big one small
+    goalCards[cg] = new GoalCard([i],[2],3,false);
     cg++;
     goalCoardCounts[2]++;
 
-    goalCards[cg] = new GoalCard([i,(i+2)%resourceColors.length],[1,1],3);
-    cg++;
-    goalCoardCounts[2]++;
+    // one of this color, one of another
+    for (var j = 0; j < i; j++) {
+      // both big
+      goalCards[cg] = new GoalCard([i,j],[1,1],3,true);
+      cg++;
+      goalCoardCounts[2]++;
 
-    goalCards[cg] = new GoalCard([i,(i+3)%resourceColors.length],[1,1],3);
-    cg++;
-    goalCoardCounts[2]++;
+      // one big one small
+      goalCards[cg] = new GoalCard([i,j],[1,1],3,false);
+      cg++;
+      goalCoardCounts[2]++;
+    }
   }
 
   // choose random nCardsPerTier for each tier
@@ -841,6 +873,7 @@ function initializeGoalCards() {
         gid = round(random(offset+-0.499, offset+(goalCoardCounts[tier]-1)+0.499));
       }
       goalCards[gid].reveal(xoffset+i);
+      // console.log(goalCards[gid]);
     }
     offset += goalCoardCounts[tier];
     xoffset += nCardsPerTier + 0.5;
@@ -890,7 +923,7 @@ function renderGoalCards() {
 
 function drawGridLines() {
   // draw grid lines
-  stroke(100, 100, 100, 50);
+  stroke(0, 0, 0, 0);
   for (let x = 0; x <= grid_cols*col_width; x += col_width) {
     line(x, 0, x, grid_rows*row_height);
   }
