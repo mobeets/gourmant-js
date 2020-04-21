@@ -6,9 +6,9 @@ let deck;
 let road_sprites_img;
 let tile_back_img;
 
-let grid_cols = 32;
+let grid_cols = 27;
 let grid_rows = 14;
-let HOME_TILE_COL = 16;
+let HOME_TILE_COL = 13;
 let HOME_TILE_ROW = 7;
 
 // compact
@@ -38,7 +38,7 @@ let homeTileIndex = 18;
 
 // tile counts
 let baseTileIndices = [0, 4, 8, 10, 12]; // for rotating road tiles
-let nRepeatsRoadTiles = 1; // # of reps of road tiles
+let nRepeatsRoadTiles = 1; // # of reps of all road tiles
 let nConversionTiles = 4; // # of conversion tiles (should be same as resourceColors.length
 let nRepeatsConversionTiles = 2; // # of reps of conversion tiles
 let nRepeatsStraightaways = 2;
@@ -50,8 +50,8 @@ let nRepeatsBlankTiles = 0;
 
 // let resourceColors = ['#f72020', '#fcba03', '#18b52f', '#272adb', '#a8329d'];
 let resourceColors = ['#f72020', '#fcba03', '#00adef', '#a53c96'];
-// let backgroundColor = '#8cc63e';
-let backgroundColor = '#a87b4f';
+let backgroundColor = '#8cc63e';
+// let backgroundColor = '#a87b4f';
 
 let controlPanelHeight = 2*row_height;
 var canvas;
@@ -102,9 +102,9 @@ class GoalCard {
       if (this.total_count === mx) {
         // double of same color is worth more
         if (this.isBothBig) {
-          this.vps = 7;
-        } else {
           this.vps = 6;
+        } else {
+          this.vps = 5;
         }
       } else {
         if (this.isBothBig) {
@@ -208,7 +208,7 @@ class GoalCard {
         stroke(playerTokens[this.player_id].color);
       } else { // grayed out
         noStroke();
-        fill(128);
+        fill(200);
       }
       rect(this.x, this.y, col_width, row_height);
     }
