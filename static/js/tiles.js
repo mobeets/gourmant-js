@@ -64,8 +64,8 @@ function windowResized() {
 }
 
 function preload() {
-    road_sprites_img = loadImage("/static/images/tiles4.png");
-    tile_back_img = loadImage("/static/images/tile_back.png");
+    road_sprites_img = loadImage("static/images/tiles4.png");
+    tile_back_img = loadImage("static/images/tile_back.png");
 }
 
 class Resource {
